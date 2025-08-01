@@ -1,0 +1,478 @@
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import { ChevronLeft, ChevronRight, Heart, Share2, Users, Target, TrendingUp, Lightbulb } from 'lucide-react';
+
+const ChangemakersPage: React.FC = () => {
+  const [currentPage, setCurrentPage] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredChangemakers, setFilteredChangemakers] = useState<typeof featuredChangemakers>([]);
+
+
+
+  const featuredChangemakers = [
+    {
+      id: 1,
+      name: 'Wanjiku Maina',
+      age: 24,
+      location: 'Nairobi',
+      area: 'Climate Action & Renewable Energy',
+      bio: 'Passionate environmental advocate working to bring clean energy solutions to rural communities. Leading innovative solar projects that transform lives.',
+      impact: '500+ families with clean energy',
+      followers: 2400,
+      projects: 3,
+      fundsRaised: 'KSh 450K',
+      image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=300&h=300&fit=crop&crop=face'
+    },
+    {
+      id: 2,
+      name: 'Brian Kipkoech',
+      age: 22,
+      location: 'Eldoret',
+      area: 'Youth Empowerment & Agriculture',
+      bio: 'Empowering young farmers with modern agricultural techniques and sustainable farming practices. Building a future where agriculture thrives.',
+      impact: '200+ youth employed',
+      followers: 1800,
+      projects: 5,
+      fundsRaised: 'KSh 320K',
+      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face'
+    },
+    {
+      id: 3,
+      name: 'Amina Hassan',
+      age: 26,
+      location: 'Mombasa',
+      area: 'Education & Digital Literacy',
+      bio: 'Bridging the digital divide by providing technology education to underserved communities. Creating opportunities through digital skills training.',
+      impact: '1,000+ students trained',
+      followers: 3200,
+      projects: 4,
+      fundsRaised: 'KSh 680K',
+      image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=300&h=300&fit=crop&crop=face'
+    },
+    {
+      id: 4,
+      name: 'David Ochieng',
+      age: 23,
+      location: 'Kisumu',
+      area: 'Water & Sanitation',
+      bio: 'Developing innovative water purification systems for rural communities. Ensuring access to clean water for all.',
+      impact: '300+ communities served',
+      followers: 2100,
+      projects: 6,
+      fundsRaised: 'KSh 520K',
+      image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&h=300&fit=crop&crop=face'
+    },
+    {
+      id: 5,
+      name: 'Sarah Njeri',
+      age: 25,
+      location: 'Nakuru',
+      area: 'Waste Management & Recycling',
+      bio: 'Transforming waste into wealth through innovative recycling programs. Creating sustainable solutions for environmental challenges.',
+      impact: '15,000+ kg waste recycled',
+      followers: 1900,
+      projects: 4,
+      fundsRaised: 'KSh 380K',
+      image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&h=300&fit=crop&crop=face'
+    },
+    {
+      id: 6,
+      name: 'James Mwangi',
+      age: 21,
+      location: 'Thika',
+      area: 'Healthcare Innovation',
+      bio: 'Developing affordable healthcare solutions for rural communities. Using technology to bridge healthcare gaps.',
+      impact: '2,000+ patients served',
+      followers: 2800,
+      projects: 3,
+      fundsRaised: 'KSh 420K',
+      image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&h=300&fit=crop&crop=face'
+    }
+  ];
+
+  const impactMetrics = [
+    {
+      title: '28,430',
+      subtitle: 'Projects Supported',
+      icon: Target,
+      color: 'from-teal-500 to-teal-600'
+    },
+    {
+      title: '8,470',
+      subtitle: 'Youth Changemakers',
+      icon: Users,
+      color: 'from-orange-500 to-orange-600'
+    },
+    {
+      title: 'KSh 180M',
+      subtitle: 'Funds Raised',
+      icon: TrendingUp,
+      color: 'from-yellow-500 to-yellow-600'
+    },
+    {
+      title: '412',
+      subtitle: 'Innovative Solutions',
+      icon: Lightbulb,
+      color: 'from-red-500 to-red-600'
+    }
+  ];
+
+  // Filter changemakers based on search query
+  React.useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredChangemakers(featuredChangemakers);
+      setCurrentPage(0);
+      return;
+    }
+
+    const filtered = featuredChangemakers.filter((changemaker) => {
+      const query = searchQuery.toLowerCase();
+      return (
+        changemaker.name.toLowerCase().includes(query) ||
+        changemaker.location.toLowerCase().includes(query) ||
+        changemaker.area.toLowerCase().includes(query) ||
+        changemaker.bio.toLowerCase().includes(query)
+      );
+    });
+
+    setFilteredChangemakers(filtered);
+    setCurrentPage(0); // Reset to first page when filtering
+  }, [searchQuery, featuredChangemakers]);
+
+  const itemsPerPage = 3;
+  const totalPages = Math.ceil(filteredChangemakers.length / itemsPerPage);
+  const currentChangemakers = filteredChangemakers.slice(
+    currentPage * itemsPerPage,
+    (currentPage + 1) * itemsPerPage
+  );
+
+  const nextPage = () => {
+    setCurrentPage((prev) => (prev + 1) % totalPages);
+  };
+
+  const prevPage = () => {
+    setCurrentPage((prev) => (prev - 1 + totalPages) % totalPages);
+  };
+
+    return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+      className="min-h-screen bg-gray-50 pt-16 relative pointer-events-auto"
+    >
+              {/* Hero Section */}
+        <section className="relative bg-gradient-to-br from-[#F1C40F] to-[#F39C12] text-gray-900 z-0">
+          <div className="container mx-auto px-4 py-20">
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              className="text-center max-w-4xl mx-auto"
+            >
+              <div className="mb-4">
+                <Link to="/" className="text-gray-800 hover:text-[#DB5A42] transition-colors text-sm">
+                  ← Back to Home
+                </Link>
+              </div>
+              <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight text-gray-900">
+                Youth Leading{' '}
+                <span className="text-[#DB5A42]">Sustainable</span> Change
+              </h1>
+              <p className="text-xl md:text-2xl mb-8 text-gray-800 leading-relaxed">
+                Connect with passionate young innovators, support transformative projects, and be part of Kenya's sustainable future. M-TAJI empowers youth to drive meaningful change in their communities.
+              </p>
+             
+                           {/* Search Bar in Hero */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="w-full flex justify-center mb-8 px-4"
+              >
+                <div className="relative w-full max-w-2xl">
+                  <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-500">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1116.65 6.65a7.5 7.5 0 010 10.6z" />
+                    </svg>
+                  </span>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search by name, location or category..."
+                    className="w-full py-3 md:py-4 pl-12 pr-4 bg-white text-gray-800 border border-gray-200 rounded-2xl shadow-lg focus:outline-none focus:ring-2 focus:ring-red-400 transition-all duration-200"
+                    aria-label="Search changemakers"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              </motion.div>
+             
+                           <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-[#00B8A9] hover:bg-[#00A89A] text-white font-semibold py-4 px-8 rounded-2xl transition-all duration-300 shadow-lg"
+                >
+                  Explore Changemakers
+                </motion.button>
+                <Link to="/about">
+                  <motion.button 
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-4 px-8 rounded-2xl transition-all duration-300 shadow-lg"
+                  >
+                    Learn More
+                  </motion.button>
+                </Link>
+              </div>
+           </motion.div>
+         </div>
+
+                 {/* Stats Bar */}
+         <div className="bg-white/20 backdrop-blur-sm border-t border-white/30">
+           <div className="container mx-auto px-4 py-6">
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+               <div>
+                 <div className="text-3xl font-bold text-gray-900">847</div>
+                 <div className="text-gray-800">Active Changemakers</div>
+               </div>
+               <div>
+                 <div className="text-3xl font-bold text-gray-900">2,156</div>
+                 <div className="text-gray-800">Projects Funded</div>
+               </div>
+               <div>
+                 <div className="text-3xl font-bold text-gray-900">KSh 180M</div>
+                 <div className="text-gray-800">Total Raised</div>
+               </div>
+             </div>
+           </div>
+         </div>
+      </section>
+
+             {/* Impact Metrics Section */}
+       <motion.section 
+         initial={{ opacity: 0, y: 50 }}
+         whileInView={{ opacity: 1, y: 0 }}
+         viewport={{ once: true }}
+         transition={{ duration: 0.8 }}
+         className="py-16 bg-white"
+       >
+         <div className="container mx-auto px-4">
+           <motion.div
+             initial={{ opacity: 0, y: 30 }}
+             animate={{ opacity: 1, y: 0 }}
+             transition={{ duration: 0.6, delay: 0.2 }}
+             className="text-center mb-12"
+           >
+             <h2 className="text-4xl font-bold text-gray-900 mb-4">Our Impact</h2>
+             <p className="text-xl text-gray-600">Transforming communities through youth innovation</p>
+           </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                         {impactMetrics.map((metric, index) => (
+               <motion.div
+                 key={index}
+                 initial={{ opacity: 0, y: 30 }}
+                 animate={{ opacity: 1, y: 0 }}
+                 whileHover={{ 
+                   y: -5,
+                   scale: 1.05,
+                   transition: { duration: 0.3 }
+                 }}
+                 transition={{ duration: 0.6, delay: 0.3 + index * 0.1 }}
+                 className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-300"
+               >
+                <div className={`w-16 h-16 bg-gradient-to-r ${metric.color} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
+                  <metric.icon className="w-8 h-8 text-white" />
+                </div>
+                <div className="text-3xl font-bold text-gray-900 mb-2">{metric.title}</div>
+                <div className="text-gray-600">{metric.subtitle}</div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+        </motion.section>
+
+                           {/* Featured Changemakers Section */}
+        <motion.section 
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="py-16 bg-gray-50"
+        >
+          <div className="container mx-auto px-4">
+                        <motion.div
+               initial={{ opacity: 0, y: 30 }}
+               animate={{ opacity: 1, y: 0 }}
+               transition={{ duration: 0.6, delay: 0.4 }}
+               className="text-center mb-12"
+             >
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">Featured Changemakers</h2>
+              <p className="text-xl text-gray-600">Meet the young innovators driving change across Kenya</p>
+              
+              {/* Search Results Indicator */}
+              {searchQuery && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-4 p-3 bg-[#00B8A9]/10 border border-[#00B8A9]/20 rounded-xl"
+                >
+                  <p className="text-[#00B8A9] font-medium">
+                    {filteredChangemakers.length === 0 
+                      ? `No results found for "${searchQuery}"`
+                      : `Found ${filteredChangemakers.length} changemaker${filteredChangemakers.length === 1 ? '' : 's'} for "${searchQuery}"`
+                    }
+                  </p>
+                </motion.div>
+              )}
+            </motion.div>
+
+                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
+             {currentChangemakers.length > 0 ? (
+               currentChangemakers.map((changemaker, index) => (
+                                   <motion.div
+                    key={changemaker.id}
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    whileHover={{ 
+                      y: -8,
+                      scale: 1.02,
+                      transition: { duration: 0.3 }
+                    }}
+                    transition={{ duration: 0.6, delay: 0.5 + index * 0.1 }}
+                    className="bg-white rounded-2xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-300"
+                  >
+                <div className="p-6">
+                  <div className="flex items-center mb-4">
+                    <img
+                      src={changemaker.image}
+                      alt={changemaker.name}
+                      className="w-16 h-16 rounded-full object-cover mr-4"
+                    />
+                    <div>
+                      <h3 className="font-bold text-lg text-gray-900">{changemaker.name}</h3>
+                      <p className="text-gray-600">{changemaker.age} • {changemaker.location}</p>
+                    </div>
+                  </div>
+
+                  <div className="mb-4">
+                    <span className="inline-block bg-[#00B8A9]/10 text-[#00B8A9] font-semibold px-3 py-1 rounded-full text-sm mb-3">
+                      {changemaker.area}
+                    </span>
+                    <p className="text-gray-700 text-sm leading-relaxed mb-3">
+                      {changemaker.bio}
+                    </p>
+                    <p className="text-[#DB5A42] font-semibold text-sm">
+                      Impact: {changemaker.impact}
+                    </p>
+                  </div>
+
+                  <div className="flex justify-between items-center mb-4 text-sm text-gray-600">
+                    <span>{changemaker.followers.toLocaleString()} followers</span>
+                    <span>{changemaker.projects} projects</span>
+                    <span>{changemaker.fundsRaised}</span>
+                  </div>
+
+                                     <div className="flex items-center justify-between">
+                     <Link to="/about">
+                       <button className="bg-[#00B8A9] hover:bg-[#00A89A] text-white font-semibold py-2 px-4 rounded-xl transition-colors">
+                         View Profile
+                       </button>
+                     </Link>
+                    <div className="flex space-x-2">
+                      <button className="p-2 text-gray-400 hover:text-red-500 transition-colors">
+                        <Heart className="w-5 h-5" />
+                      </button>
+                      <button className="p-2 text-gray-400 hover:text-[#00B8A9] transition-colors">
+                        <Share2 className="w-5 h-5" />
+                      </button>
+                    </div>
+                                     </div>
+                 </div>
+               </motion.div>
+             ))
+             ) : (
+               <motion.div
+                 initial={{ opacity: 0, y: 30 }}
+                 animate={{ opacity: 1, y: 0 }}
+                 transition={{ duration: 0.6, delay: 0.5 }}
+                 className="col-span-full text-center py-12"
+               >
+                 <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+                   <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1116.65 6.65a7.5 7.5 0 010 10.6z" />
+                   </svg>
+                   <h3 className="text-xl font-semibold text-gray-900 mb-2">No changemakers found</h3>
+                   <p className="text-gray-600 mb-4">Try adjusting your search terms or browse all changemakers</p>
+                   <button
+                     onClick={() => setSearchQuery('')}
+                     className="bg-[#00B8A9] hover:bg-[#00A89A] text-white font-semibold py-2 px-6 rounded-xl transition-colors"
+                   >
+                     Clear Search
+                   </button>
+                 </div>
+               </motion.div>
+             )}
+           </div>
+
+                     {/* Carousel Controls */}
+                       {filteredChangemakers.length > 0 && totalPages > 1 && (
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.8 }}
+                className="flex justify-center items-center space-x-4"
+              >
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={prevPage}
+                  className="p-3 bg-white rounded-full shadow-lg hover:shadow-xl transition-shadow border border-gray-200"
+                >
+                  <ChevronLeft className="w-6 h-6 text-gray-600" />
+                </motion.button>
+                
+                <div className="flex space-x-2">
+                  {Array.from({ length: totalPages }, (_, i) => (
+                    <motion.button
+                      key={i}
+                      whileHover={{ scale: 1.2 }}
+                      whileTap={{ scale: 0.8 }}
+                      onClick={() => setCurrentPage(i)}
+                      className={`w-3 h-3 rounded-full transition-colors ${
+                        i === currentPage ? 'bg-[#00B8A9]' : 'bg-gray-300'
+                      }`}
+                    />
+                  ))}
+                </div>
+  
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={nextPage}
+                  className="p-3 bg-white rounded-full shadow-lg hover:shadow-xl transition-shadow border border-gray-200"
+                >
+                  <ChevronRight className="w-6 h-6 text-gray-600" />
+                </motion.button>
+              </motion.div>
+            )}
+                 </div>
+        </motion.section>
+     </motion.div>
+   );
+ };
+
+export default ChangemakersPage; 

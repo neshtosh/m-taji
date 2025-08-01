@@ -22,23 +22,25 @@ const Navbar = () => {
 
   const navItems = [
     { name: 'Home', path: '/' },
-    { name: 'Stories', path: '/stories' },
+    { name: 'Changemakers', path: '/changemakers' },
     { name: 'About', path: '/about' },
     { name: 'Contact', path: '/contact' },
   ];
+
+
 
   return (
     <motion.nav
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-[9999] transition-all duration-300 pointer-events-auto ${
         isScrolled 
           ? 'bg-white shadow-lg backdrop-blur-sm' 
           : 'bg-transparent'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pointer-events-auto">
+        <div className="flex justify-between items-center h-16 pointer-events-auto">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <div className="bg-primary p-2 rounded-lg">
@@ -57,7 +59,7 @@ const Navbar = () => {
               <Link
                 key={item.name}
                 to={item.path}
-                className={`font-medium transition-colors duration-200 ${
+                className={`font-medium transition-colors duration-200 cursor-pointer ${
                   location.pathname === item.path
                     ? (isScrolled ? 'text-primary' : 'text-white font-bold')
                     : (isScrolled ? 'text-text-dark hover:text-primary' : 'text-white hover:text-primary-light')

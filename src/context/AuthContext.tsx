@@ -60,6 +60,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       };
 
       storeUsers(users);
+      
+      // Auto-login after successful registration
+      const user: User = {
+        id: Date.now().toString(),
+        email,
+        name,
+        role: 'user'
+      };
+      setUser(user);
+      localStorage.setItem('user', JSON.stringify(user));
+      
       return true;
     } catch (error) {
       console.error('Registration error:', error);

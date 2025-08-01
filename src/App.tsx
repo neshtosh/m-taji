@@ -3,15 +3,17 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from './components/layout/Navbar';
 import HomePage from './pages/HomePage';
-import StoriesPage from './pages/StoriesPage';
+import ChangemakersPage from './pages/ChangemakersPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminLogin from './pages/admin/AdminLogin';
+import DashboardPage from './pages/DashboardPage';
 import Footer from './components/layout/Footer';
 import FloatingDonateButton from './components/ui/FloatingDonateButton';
 import SignInPage from './pages/auth/SignInPage';
 import SignUpPage from './pages/auth/SignUpPage';
+import PrivateRoute from './components/auth/PrivateRoute';
 import { AuthProvider } from './context/AuthContext';
 
 function App() {
@@ -25,16 +27,46 @@ function App() {
               <Route path="/admin/*" element={<AdminDashboard />} />
               <Route path="/signin" element={<SignInPage />} />
               <Route path="/signup" element={<SignUpPage />} />
-              <Route path="/*" element={
+              <Route path="/dashboard" element={
+                <PrivateRoute>
+                  <DashboardPage />
+                </PrivateRoute>
+              } />
+              <Route path="/" element={
                 <>
                   <Navbar />
                   <main>
-                    <Routes>
-                      <Route path="/" element={<HomePage />} />
-                      <Route path="/stories" element={<StoriesPage />} />
-                      <Route path="/about" element={<AboutPage />} />
-                      <Route path="/contact" element={<ContactPage />} />
-                    </Routes>
+                    <HomePage />
+                  </main>
+                  <Footer />
+                  <FloatingDonateButton />
+                </>
+              } />
+              <Route path="/changemakers" element={
+                <>
+                  <Navbar />
+                  <main>
+                    <ChangemakersPage />
+                  </main>
+                  <Footer />
+                  <FloatingDonateButton />
+                </>
+              } />
+              <Route path="/about" element={
+                <>
+                  <Navbar />
+                  <main>
+                    <AboutPage />
+                  </main>
+                  <Footer />
+                  <FloatingDonateButton />
+                </>
+              } />
+              <Route path="/contact" element={
+                <>
+                  <Navbar />
+                  <main>
+                    <ContactPage />
                   </main>
                   <Footer />
                   <FloatingDonateButton />

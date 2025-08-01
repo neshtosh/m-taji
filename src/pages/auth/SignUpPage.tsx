@@ -46,8 +46,7 @@ const SignUpPage = () => {
     try {
       const success = await register(formData.name, formData.email, formData.password);
       if (success) {
-        alert('Account created successfully! Please sign in.');
-        navigate('/signin');
+        navigate('/dashboard');
       } else {
         setError('Email already exists. Please use a different email or sign in.');
       }
