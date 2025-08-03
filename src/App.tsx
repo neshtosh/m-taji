@@ -14,6 +14,9 @@ import FloatingDonateButton from './components/ui/FloatingDonateButton';
 import SignInPage from './pages/auth/SignInPage';
 import SignUpPage from './pages/auth/SignUpPage';
 import PrivateRoute from './components/auth/PrivateRoute';
+import ProfilePage from './pages/ProfilePage';
+import BlogPage from './pages/BlogPage';
+import BlogPostPage from './pages/BlogPostPage';
 import { AuthProvider } from './context/AuthContext';
 
 function App() {
@@ -67,6 +70,36 @@ function App() {
                   <Navbar />
                   <main>
                     <ContactPage />
+                  </main>
+                  <Footer />
+                  <FloatingDonateButton />
+                </>
+              } />
+              <Route path="/profile/:id" element={
+                <>
+                  <Navbar />
+                  <main>
+                    <ProfilePage />
+                  </main>
+                  <Footer />
+                  <FloatingDonateButton />
+                </>
+              } />
+              <Route path="/blog" element={
+                <>
+                  <Navbar />
+                  <main>
+                    <BlogPage />
+                  </main>
+                  <Footer />
+                  <FloatingDonateButton />
+                </>
+              } />
+              <Route path="/blog/:id" element={
+                <>
+                  <Navbar />
+                  <main>
+                    <BlogPostPage />
                   </main>
                   <Footer />
                   <FloatingDonateButton />

@@ -1,95 +1,96 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Heart, Share2, Users, Target, TrendingUp, Lightbulb } from 'lucide-react';
+
+// Move featuredChangemakers outside the component to prevent recreation on every render
+const featuredChangemakers = [
+  {
+    id: 1,
+    name: 'Wanjiku Maina',
+    age: 24,
+    location: 'Nairobi',
+    area: 'Climate Action & Renewable Energy',
+    bio: 'Passionate environmental advocate working to bring clean energy solutions to rural communities. Leading innovative solar projects that transform lives.',
+    impact: '500+ families with clean energy',
+    followers: 2400,
+    projects: 3,
+    fundsRaised: 'KSh 450K',
+    image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=300&h=300&fit=crop&crop=face'
+  },
+  {
+    id: 2,
+    name: 'Brian Kipkoech',
+    age: 22,
+    location: 'Eldoret',
+    area: 'Youth Empowerment & Agriculture',
+    bio: 'Empowering young farmers with modern agricultural techniques and sustainable farming practices. Building a future where agriculture thrives.',
+    impact: '200+ youth employed',
+    followers: 1800,
+    projects: 5,
+    fundsRaised: 'KSh 320K',
+    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face'
+  },
+  {
+    id: 3,
+    name: 'Amina Hassan',
+    age: 26,
+    location: 'Mombasa',
+    area: 'Education & Digital Literacy',
+    bio: 'Bridging the digital divide by providing technology education to underserved communities. Creating opportunities through digital skills training.',
+    impact: '1,000+ students trained',
+    followers: 3200,
+    projects: 4,
+    fundsRaised: 'KSh 680K',
+    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=300&h=300&fit=crop&crop=face'
+  },
+  {
+    id: 4,
+    name: 'David Ochieng',
+    age: 23,
+    location: 'Kisumu',
+    area: 'Water & Sanitation',
+    bio: 'Developing innovative water purification systems for rural communities. Ensuring access to clean water for all.',
+    impact: '300+ communities served',
+    followers: 2100,
+    projects: 6,
+    fundsRaised: 'KSh 520K',
+    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&h=300&fit=crop&crop=face'
+  },
+  {
+    id: 5,
+    name: 'Sarah Njeri',
+    age: 25,
+    location: 'Nakuru',
+    area: 'Waste Management & Recycling',
+    bio: 'Transforming waste into wealth through innovative recycling programs. Creating sustainable solutions for environmental challenges.',
+    impact: '15,000+ kg waste recycled',
+    followers: 1900,
+    projects: 4,
+    fundsRaised: 'KSh 380K',
+    image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&h=300&fit=crop&crop=face'
+  },
+  {
+    id: 6,
+    name: 'James Mwangi',
+    age: 21,
+    location: 'Thika',
+    area: 'Healthcare Innovation',
+    bio: 'Developing affordable healthcare solutions for rural communities. Using technology to bridge healthcare gaps.',
+    impact: '2,000+ patients served',
+    followers: 2800,
+    projects: 3,
+    fundsRaised: 'KSh 420K',
+    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&h=300&fit=crop&crop=face'
+  }
+];
 
 const ChangemakersPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredChangemakers, setFilteredChangemakers] = useState<typeof featuredChangemakers>([]);
-
-
-
-  const featuredChangemakers = [
-    {
-      id: 1,
-      name: 'Wanjiku Maina',
-      age: 24,
-      location: 'Nairobi',
-      area: 'Climate Action & Renewable Energy',
-      bio: 'Passionate environmental advocate working to bring clean energy solutions to rural communities. Leading innovative solar projects that transform lives.',
-      impact: '500+ families with clean energy',
-      followers: 2400,
-      projects: 3,
-      fundsRaised: 'KSh 450K',
-      image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=300&h=300&fit=crop&crop=face'
-    },
-    {
-      id: 2,
-      name: 'Brian Kipkoech',
-      age: 22,
-      location: 'Eldoret',
-      area: 'Youth Empowerment & Agriculture',
-      bio: 'Empowering young farmers with modern agricultural techniques and sustainable farming practices. Building a future where agriculture thrives.',
-      impact: '200+ youth employed',
-      followers: 1800,
-      projects: 5,
-      fundsRaised: 'KSh 320K',
-      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face'
-    },
-    {
-      id: 3,
-      name: 'Amina Hassan',
-      age: 26,
-      location: 'Mombasa',
-      area: 'Education & Digital Literacy',
-      bio: 'Bridging the digital divide by providing technology education to underserved communities. Creating opportunities through digital skills training.',
-      impact: '1,000+ students trained',
-      followers: 3200,
-      projects: 4,
-      fundsRaised: 'KSh 680K',
-      image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=300&h=300&fit=crop&crop=face'
-    },
-    {
-      id: 4,
-      name: 'David Ochieng',
-      age: 23,
-      location: 'Kisumu',
-      area: 'Water & Sanitation',
-      bio: 'Developing innovative water purification systems for rural communities. Ensuring access to clean water for all.',
-      impact: '300+ communities served',
-      followers: 2100,
-      projects: 6,
-      fundsRaised: 'KSh 520K',
-      image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&h=300&fit=crop&crop=face'
-    },
-    {
-      id: 5,
-      name: 'Sarah Njeri',
-      age: 25,
-      location: 'Nakuru',
-      area: 'Waste Management & Recycling',
-      bio: 'Transforming waste into wealth through innovative recycling programs. Creating sustainable solutions for environmental challenges.',
-      impact: '15,000+ kg waste recycled',
-      followers: 1900,
-      projects: 4,
-      fundsRaised: 'KSh 380K',
-      image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&h=300&fit=crop&crop=face'
-    },
-    {
-      id: 6,
-      name: 'James Mwangi',
-      age: 21,
-      location: 'Thika',
-      area: 'Healthcare Innovation',
-      bio: 'Developing affordable healthcare solutions for rural communities. Using technology to bridge healthcare gaps.',
-      impact: '2,000+ patients served',
-      followers: 2800,
-      projects: 3,
-      fundsRaised: 'KSh 420K',
-      image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&h=300&fit=crop&crop=face'
-    }
-  ];
+  const [filteredChangemakers, setFilteredChangemakers] = useState<typeof featuredChangemakers>(featuredChangemakers);
+  const [favorites, setFavorites] = useState<Set<number>>(new Set());
+  const navigate = useNavigate();
 
   const impactMetrics = [
     {
@@ -138,7 +139,7 @@ const ChangemakersPage: React.FC = () => {
 
     setFilteredChangemakers(filtered);
     setCurrentPage(0); // Reset to first page when filtering
-  }, [searchQuery, featuredChangemakers]);
+  }, [searchQuery]); // Remove featuredChangemakers from dependency array since it's now static
 
   const itemsPerPage = 3;
   const totalPages = Math.ceil(filteredChangemakers.length / itemsPerPage);
@@ -153,6 +154,46 @@ const ChangemakersPage: React.FC = () => {
 
   const prevPage = () => {
     setCurrentPage((prev) => (prev - 1 + totalPages) % totalPages);
+  };
+
+  // Handle favorite toggle
+  const toggleFavorite = (changemakerId: number) => {
+    setFavorites(prev => {
+      const newFavorites = new Set(prev);
+      if (newFavorites.has(changemakerId)) {
+        newFavorites.delete(changemakerId);
+      } else {
+        newFavorites.add(changemakerId);
+      }
+      return newFavorites;
+    });
+  };
+
+  // Handle share functionality
+  const handleShare = (changemaker: typeof featuredChangemakers[0]) => {
+    const shareText = `Check out ${changemaker.name}, a youth changemaker working on ${changemaker.area} in ${changemaker.location}!`;
+    const shareUrl = window.location.href;
+    
+    if (navigator.share) {
+      navigator.share({
+        title: `${changemaker.name} - Youth Changemaker`,
+        text: shareText,
+        url: shareUrl
+      });
+    } else {
+      // Fallback: copy to clipboard
+      navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
+      alert('Profile link copied to clipboard!');
+    }
+  };
+
+  // Handle explore changemakers
+  const handleExploreChangemakers = () => {
+    // Scroll to the featured changemakers section
+    const element = document.getElementById('featured-changemakers');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
     return (
@@ -223,19 +264,25 @@ const ChangemakersPage: React.FC = () => {
                 <motion.button 
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
+                  onClick={handleExploreChangemakers}
                   className="bg-[#00B8A9] hover:bg-[#00A89A] text-white font-semibold py-4 px-8 rounded-2xl transition-all duration-300 shadow-lg"
                 >
                   Explore Changemakers
                 </motion.button>
-                <Link to="/about">
-                  <motion.button 
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-4 px-8 rounded-2xl transition-all duration-300 shadow-lg"
-                  >
-                    Learn More
-                  </motion.button>
-                </Link>
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    // Scroll to impact metrics section
+                    const element = document.getElementById('impact-metrics');
+                    if (element) {
+                      element.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
+                  className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-4 px-8 rounded-2xl transition-all duration-300 shadow-lg"
+                >
+                  Learn More
+                </motion.button>
               </div>
            </motion.div>
          </div>
@@ -263,6 +310,7 @@ const ChangemakersPage: React.FC = () => {
 
              {/* Impact Metrics Section */}
        <motion.section 
+         id="impact-metrics"
          initial={{ opacity: 0, y: 50 }}
          whileInView={{ opacity: 1, y: 0 }}
          viewport={{ once: true }}
@@ -307,6 +355,7 @@ const ChangemakersPage: React.FC = () => {
 
                            {/* Featured Changemakers Section */}
         <motion.section 
+          id="featured-changemakers"
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -387,16 +436,27 @@ const ChangemakersPage: React.FC = () => {
                   </div>
 
                                      <div className="flex items-center justify-between">
-                     <Link to="/about">
-                       <button className="bg-[#00B8A9] hover:bg-[#00A89A] text-white font-semibold py-2 px-4 rounded-xl transition-colors">
-                         View Profile
-                       </button>
-                     </Link>
+                     <button 
+                       onClick={() => navigate(`/profile/${changemaker.id}`)}
+                       className="bg-[#00B8A9] hover:bg-[#00A89A] text-white font-semibold py-2 px-4 rounded-xl transition-colors"
+                     >
+                       View Profile
+                     </button>
                     <div className="flex space-x-2">
-                      <button className="p-2 text-gray-400 hover:text-red-500 transition-colors">
-                        <Heart className="w-5 h-5" />
+                      <button 
+                        onClick={() => toggleFavorite(changemaker.id)}
+                        className={`p-2 transition-colors ${
+                          favorites.has(changemaker.id) 
+                            ? 'text-red-500' 
+                            : 'text-gray-400 hover:text-red-500'
+                        }`}
+                      >
+                        <Heart className={`w-5 h-5 ${favorites.has(changemaker.id) ? 'fill-current' : ''}`} />
                       </button>
-                      <button className="p-2 text-gray-400 hover:text-[#00B8A9] transition-colors">
+                      <button 
+                        onClick={() => handleShare(changemaker)}
+                        className="p-2 text-gray-400 hover:text-[#00B8A9] transition-colors"
+                      >
                         <Share2 className="w-5 h-5" />
                       </button>
                     </div>
