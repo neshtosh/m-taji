@@ -12,7 +12,7 @@ const HomePage = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="min-h-screen"
+      className="min-h-screen bg-white dark:bg-gray-900"
     >
       <HeroSection />
       <ImpactStats />

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import { 
   Users, 
@@ -23,21 +23,24 @@ import {
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
+  const [currentPage, setCurrentPage] = useState(1);
+  const projectsPerPage = 6;
 
   const tabs = [
     { id: 'profile', name: 'Profile', icon: Users },
     { id: 'projects', name: 'Projects', icon: Target },
-    { id: 'microblog', name: 'Microblog', icon: MessageCircle },
     { id: 'blog', name: 'Blog', icon: FileText },
+    { id: 'microblog', name: 'Microblog', icon: MessageCircle },
     { id: 'shop', name: 'Shop', icon: TrendingUp }
   ];
 
   const metrics = [
-    { name: 'Total Projects', value: '12', icon: Target, color: 'text-blue-600', bgColor: 'bg-blue-100' },
-    { name: 'Blog Posts', value: '8', icon: FileText, color: 'text-green-600', bgColor: 'bg-green-100' },
-    { name: 'Microblogs', value: '24', icon: MessageCircle, color: 'text-purple-600', bgColor: 'bg-purple-100' },
-    { name: 'Total Impact', value: '2.5K', icon: TrendingUp, color: 'text-orange-600', bgColor: 'bg-orange-100' }
+    { name: 'Total Projects', value: '12', icon: Target, color: 'text-primary', bgColor: 'bg-primary/20' },
+    { name: 'Blog Posts', value: '8', icon: FileText, color: 'text-secondary', bgColor: 'bg-secondary/20' },
+    { name: 'Microblogs', value: '24', icon: MessageCircle, color: 'text-primary', bgColor: 'bg-primary/20' },
+    { name: 'Total Impact', value: '2.5K', icon: TrendingUp, color: 'text-secondary', bgColor: 'bg-secondary/20' }
   ];
 
   const completedProjects = [
@@ -61,6 +64,63 @@ const DashboardPage: React.FC = () => {
     }
   ];
 
+  const projectsDone = [
+    {
+      id: 1,
+      title: 'Clean Water Initiative',
+      description: 'Provided clean water access to rural communities',
+      impact: '500+ families served',
+      completionDate: 'January 2024',
+      image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop',
+      category: 'Health & Sanitation'
+    },
+    {
+      id: 2,
+      title: 'Digital Literacy Program',
+      description: 'Taught computer skills to youth in underserved areas',
+      impact: '200+ students trained',
+      completionDate: 'December 2023',
+      image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop',
+      category: 'Education'
+    },
+    {
+      id: 3,
+      title: 'Community Garden Project',
+      description: 'Established sustainable farming practices in urban areas',
+      impact: '150+ households benefited',
+      completionDate: 'November 2023',
+      image: 'https://images.unsplash.com/photo-1523741543316-beb7fc7023d8?w=400&h=300&fit=crop',
+      category: 'Agriculture'
+    },
+    {
+      id: 4,
+      title: 'Youth Mentorship Program',
+      description: 'Connected young professionals with high school students',
+      impact: '75+ students mentored',
+      completionDate: 'October 2023',
+      image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=300&fit=crop',
+      category: 'Education'
+    },
+    {
+      id: 5,
+      title: 'Renewable Energy Workshop',
+      description: 'Trained communities on solar panel installation',
+      impact: '300+ people trained',
+      completionDate: 'September 2023',
+      image: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&h=300&fit=crop',
+      category: 'Environment'
+    },
+    {
+      id: 6,
+      title: 'Women Empowerment Initiative',
+      description: 'Provided business skills training to women entrepreneurs',
+      impact: '120+ women empowered',
+      completionDate: 'August 2023',
+      image: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&h=300&fit=crop',
+      category: 'Economic Development'
+    }
+  ];
+
   const renderProfileContent = () => (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Profile Overview */}
@@ -68,23 +128,23 @@ const DashboardPage: React.FC = () => {
         <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
           <div className="text-center mb-6">
             <div className="w-24 h-24 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-white font-bold text-2xl">
+                              <span className="text-gray-900 dark:text-white font-bold text-2xl">
                 {user?.name?.charAt(0) || 'U'}
               </span>
             </div>
-            <h3 className="text-xl font-bold text-white">{user?.name}</h3>
-            <p className="text-gray-400">Youth Changemaker</p>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white">{user?.name}</h3>
+            <p className="text-gray-600 dark:text-gray-400">Youth Changemaker</p>
             <p className="text-sm text-gray-500 mt-1">Member since 2023</p>
           </div>
 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-gray-400">Location</span>
-              <span className="font-medium text-white">Nairobi, Kenya</span>
+              <span className="font-medium text-gray-700 dark:text-white">Nairobi, Kenya</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-gray-400">Focus Area</span>
-              <span className="font-medium text-white">Education & Technology</span>
+              <span className="font-medium text-gray-700 dark:text-white">Education & Technology</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-gray-400">Projects Completed</span>
@@ -96,26 +156,74 @@ const DashboardPage: React.FC = () => {
             </div>
           </div>
 
-          <button className="w-full mt-6 bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors">
+          <button className="w-full mt-6 bg-primary hover:bg-primary-dark text-black font-semibold py-2 px-4 rounded-lg transition-colors">
             Edit Profile
           </button>
         </div>
       </div>
 
+      {/* Projects Done */}
+      <div className="lg:col-span-2 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white">Projects Done</h3>
+            <span className="text-sm text-gray-400">{projectsDone.length} completed projects</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {projectsDone.slice(0, 4).map((project) => (
+              <div key={project.id} className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                <div className="flex items-start space-x-3">
+                  <img 
+                    src={project.image} 
+                    alt={project.title}
+                    className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-gray-900 dark:text-white text-sm mb-1">{project.title}</h4>
+                    <p className="text-xs text-gray-400 mb-2 line-clamp-2">{project.description}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs bg-amber-900 text-amber-300 px-2 py-1 rounded-full">
+                        {project.category}
+                      </span>
+                      <span className="text-xs text-gray-500">{project.completionDate}</span>
+                    </div>
+                    <p className="text-xs text-green-400 mt-1">{project.impact}</p>
+                    <div className="flex space-x-2 mt-2">
+                      <button className="text-xs text-blue-400 hover:text-blue-300 font-medium">Fundraise</button>
+                      <button className="text-xs text-gray-400 hover:text-gray-300">View</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          {projectsDone.length > 4 && (
+            <div className="mt-4 text-center">
+              <button 
+                onClick={() => setActiveTab('projects')}
+                className="text-primary hover:text-primary-dark text-sm font-medium transition-colors"
+              >
+                View All {projectsDone.length} Projects
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Recent Activity */}
       <div className="lg:col-span-2">
-        <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
-          <h3 className="text-xl font-bold text-white mb-4">Recent Activity</h3>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Recent Activity</h3>
           <div className="space-y-4">
             {completedProjects.map((project) => (
-              <div key={project.id} className="flex items-center space-x-4 p-4 bg-gray-700 rounded-lg">
+              <div key={project.id} className="flex items-center space-x-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
                 <img 
                   src={project.image} 
                   alt={project.title}
                   className="w-16 h-16 rounded-lg object-cover"
                 />
                 <div className="flex-1">
-                  <h4 className="font-semibold text-white">{project.title}</h4>
+                  <h4 className="font-semibold text-gray-900 dark:text-white">{project.title}</h4>
                   <p className="text-sm text-gray-400">{project.description}</p>
                   <div className="flex items-center space-x-4 mt-2">
                     <span className="text-xs bg-green-900 text-green-300 px-2 py-1 rounded-full">
@@ -132,87 +240,239 @@ const DashboardPage: React.FC = () => {
     </div>
   );
 
-  const renderProjectsContent = () => (
-    <div className="bg-white rounded-xl shadow-lg p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-bold text-gray-900">My Projects</h3>
-        <button className="flex items-center space-x-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg transition-colors">
-          <Plus className="h-4 w-4" />
-          <span>Upload Project</span>
-        </button>
-      </div>
+  const renderProjectsContent = () => {
+    // Calculate pagination
+    const indexOfLastProject = currentPage * projectsPerPage;
+    const indexOfFirstProject = indexOfLastProject - projectsPerPage;
+    const currentProjects = projectsDone.slice(indexOfFirstProject, indexOfLastProject);
+    const totalPages = Math.ceil(projectsDone.length / projectsPerPage);
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {completedProjects.map((project) => (
-          <div key={project.id} className="bg-gray-50 rounded-lg overflow-hidden">
-            <img 
-              src={project.image} 
-              alt={project.title}
-              className="w-full h-48 object-cover"
-            />
-            <div className="p-4">
-              <h4 className="font-semibold text-gray-900 mb-2">{project.title}</h4>
-              <p className="text-sm text-gray-600 mb-3">{project.description}</p>
-              <div className="flex items-center justify-between">
-                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                  {project.status}
-                </span>
-                <span className="text-xs text-gray-500">{project.impact}</span>
+    return (
+      <div className="space-y-6">
+        {/* Upload New Project Form - At the top */}
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="flex justify-between items-center mb-6">
+                          <h3 className="text-xl font-bold text-gray-900 font-artistic italic">Upload New Project</h3>
+            <span className="text-sm text-gray-500">Share your latest project</span>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Project Title</label>
+                <input 
+                  type="text" 
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  placeholder="Enter project title"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent">
+                  <option value="">Select category</option>
+                  <option value="education">Education</option>
+                  <option value="health">Health & Sanitation</option>
+                  <option value="agriculture">Agriculture</option>
+                  <option value="environment">Environment</option>
+                  <option value="economic">Economic Development</option>
+                  <option value="technology">Technology</option>
+                </select>
               </div>
             </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+              <textarea 
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                rows={3}
+                placeholder="Describe your project and its impact..."
+              />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Project Images</label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                  <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600">Click to upload images</p>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Project Video</label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                  <Video className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600">Click to upload video</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Impact Description</label>
+                <input 
+                  type="text" 
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  placeholder="e.g., 500+ families served"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Completion Date</label>
+                <input 
+                  type="date" 
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+            
+            {/* Fundraising Options */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+              <div className="flex items-center space-x-3 mb-3">
+                <input 
+                  type="checkbox" 
+                  id="fundraise-project"
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <label htmlFor="fundraise-project" className="text-sm font-medium text-blue-900">
+                  Enable Fundraising for this Project
+                </label>
+              </div>
+              <p className="text-xs text-blue-700 mb-3">
+                Allow supporters to contribute financially to help scale this project and create greater impact.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-blue-800 mb-1">Funding Goal (KSh)</label>
+                  <input 
+                    type="number" 
+                    className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    placeholder="e.g., 500,000"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-blue-800 mb-1">Campaign Duration (Days)</label>
+                  <input 
+                    type="number" 
+                    className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    placeholder="e.g., 30"
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <button className="w-full bg-primary hover:bg-primary-dark text-black font-semibold py-3 px-4 rounded-lg transition-colors">
+              Upload Project
+            </button>
           </div>
-        ))}
-      </div>
+        </div>
 
-      {/* Upload Project Form */}
-      <div className="mt-8 p-6 bg-gray-50 rounded-lg">
-        <h4 className="font-semibold text-gray-900 mb-4">Upload New Project</h4>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Project Title</label>
-            <input 
-              type="text" 
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-              placeholder="Enter project title"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-            <textarea 
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-              rows={3}
-              placeholder="Describe your project"
-            />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* All Projects Section */}
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="flex justify-between items-center mb-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Project Images</label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-600">Click to upload images</p>
-              </div>
+              <h3 className="text-xl font-bold text-gray-900 font-artistic italic">My Projects</h3>
+              <p className="text-sm text-gray-500 mt-1">Showing {projectsDone.length} completed projects</p>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Project Video</label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                <Video className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-600">Click to upload video</p>
-              </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-500">Filter:</span>
+              <select className="px-3 py-1 border border-gray-300 rounded-lg text-sm">
+                <option value="all">All Categories</option>
+                <option value="education">Education</option>
+                <option value="health">Health & Sanitation</option>
+                <option value="agriculture">Agriculture</option>
+                <option value="environment">Environment</option>
+                <option value="economic">Economic Development</option>
+                <option value="technology">Technology</option>
+              </select>
             </div>
           </div>
-          <button className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors">
-            Upload Project
-          </button>
+
+          {/* Projects Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+            {currentProjects.map((project) => (
+              <div key={project.id} className="bg-gray-50 rounded-lg overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow">
+                <img 
+                  src={project.image} 
+                  alt={project.title}
+                  className="w-full h-48 object-cover"
+                />
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-full">
+                      {project.category}
+                    </span>
+                    <span className="text-xs text-gray-500">{project.completionDate}</span>
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">{project.title}</h4>
+                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">{project.description}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-green-600 font-medium">{project.impact}</span>
+                    <div className="flex space-x-2">
+                      <button className="text-xs text-amber-600 hover:text-amber-700 font-medium">Edit</button>
+                      <button 
+                        onClick={() => navigate(`/project/${project.id}`)}
+                        className="text-xs text-gray-500 hover:text-gray-700"
+                      >
+                        View
+                      </button>
+                      <button className="text-xs text-blue-600 hover:text-blue-700 font-medium">Fundraise</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between border-t border-gray-200 pt-6">
+              <div className="text-sm text-gray-500">
+                Showing {indexOfFirstProject + 1} to {Math.min(indexOfLastProject, projectsDone.length)} of {projectsDone.length} projects
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+                
+                <div className="flex space-x-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-3 py-2 text-sm rounded-lg transition-colors ${
+                        currentPage === page
+                          ? 'bg-primary text-black font-semibold'
+                          : 'border border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+                
+                <button
+                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderMicroblogContent = () => (
     <div className="bg-white rounded-xl shadow-lg p-6">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-bold text-gray-900">My Microblog</h3>
-        <button className="flex items-center space-x-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg transition-colors">
+        <h3 className="text-xl font-bold text-gray-900 font-artistic italic">My Microblog</h3>
+        <button className="flex items-center space-x-2 bg-primary hover:bg-primary-dark text-black font-semibold px-4 py-2 rounded-lg transition-colors">
           <Plus className="h-4 w-4" />
           <span>New Post</span>
         </button>
@@ -246,7 +506,7 @@ const DashboardPage: React.FC = () => {
               <LinkIcon className="h-5 w-5" />
             </button>
           </div>
-          <button className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg transition-colors">
+          <button className="bg-primary hover:bg-primary-dark text-black font-semibold px-4 py-2 rounded-lg transition-colors">
             Post
           </button>
         </div>
@@ -292,8 +552,8 @@ const DashboardPage: React.FC = () => {
   const renderBlogContent = () => (
     <div className="bg-white rounded-xl shadow-lg p-6">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-bold text-gray-900">My Blog Posts</h3>
-        <button className="flex items-center space-x-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg transition-colors">
+        <h3 className="text-xl font-bold text-gray-900 font-artistic italic">My Blog Posts</h3>
+        <button className="flex items-center space-x-2 bg-primary hover:bg-primary-dark text-black font-semibold px-4 py-2 rounded-lg transition-colors">
           <Plus className="h-4 w-4" />
           <span>Write Blog</span>
         </button>
@@ -468,7 +728,7 @@ const DashboardPage: React.FC = () => {
               <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                 Save Draft
               </button>
-              <button className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors">
+              <button className="px-4 py-2 bg-primary hover:bg-primary-dark text-black font-semibold rounded-lg transition-colors">
                 Publish Blog
               </button>
             </div>
@@ -484,7 +744,7 @@ const DashboardPage: React.FC = () => {
       <div className="lg:col-span-2">
         <div className="bg-white rounded-xl shadow-lg p-6">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-bold text-gray-900">Your Products</h3>
+            <h3 className="text-xl font-bold text-gray-900 font-artistic italic">Your Products</h3>
             <button className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
               <Plus className="h-4 w-4" />
               <span>Add Product</span>
@@ -667,34 +927,60 @@ const DashboardPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <DashboardHeader activeTab={activeTab} onTabChange={setActiveTab} />
+      
+      {/* Mobile Navigation Tabs - Only visible on mobile */}
+      <div className="md:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex space-x-1 overflow-x-auto">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-3 py-2 rounded-lg font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
+                  activeTab === tab.id
+                    ? 'bg-primary text-black font-semibold'
+                    : 'text-gray-300 hover:bg-gray-700'
+                }`}
+              >
+                {tab.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
       <div className="container mx-auto px-4 py-6">
-        {/* Dashboard Title */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Your Dashboard</h1>
-          <p className="text-gray-400">Manage your profile, projects, and community engagement</p>
-        </div>
-
-        {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {metrics.map((metric) => (
-            <div key={metric.name} className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-400">{metric.name}</p>
-                  <p className="text-2xl font-bold text-white">{metric.value}</p>
-                </div>
-                <div className={`p-3 rounded-full ${metric.bgColor}`}>
-                  <metric.icon className={`h-6 w-6 ${metric.color}`} />
-                </div>
-              </div>
+        {/* Dashboard Title - Only show on profile page */}
+        {activeTab === 'profile' && (
+          <>
+            <div className="mb-8">
+                              <h1 className="text-3xl font-bold text-gray-900 dark:text-white font-artistic italic mb-2">Your Dashboard</h1>
+                <p className="text-gray-600 dark:text-gray-400">Manage your profile, projects, and community engagement</p>
             </div>
-          ))}
-        </div>
 
-        {/* Navigation Tabs */}
-        <div className="bg-gray-800 rounded-xl shadow-lg p-4 mb-6 border border-gray-700">
+            {/* Key Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              {metrics.map((metric) => (
+                                 <div key={metric.name} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                   <div className="flex items-center justify-between">
+                     <div>
+                       <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{metric.name}</p>
+                       <p className="text-2xl font-bold text-gray-900 dark:text-white">{metric.value}</p>
+                     </div>
+                    <div className={`p-3 rounded-full ${metric.bgColor}`}>
+                      <metric.icon className={`h-6 w-6 ${metric.color}`} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Desktop Navigation Tabs - Hidden on mobile */}
+        <div className="hidden md:block bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 mb-6 border border-gray-200 dark:border-gray-700">
           <div className="flex space-x-1">
             {tabs.map((tab) => (
               <button
@@ -702,7 +988,7 @@ const DashboardPage: React.FC = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                   activeTab === tab.id
-                    ? 'bg-amber-600 text-white'
+                    ? 'bg-primary text-black font-semibold'
                     : 'text-gray-300 hover:bg-gray-700'
                 }`}
               >

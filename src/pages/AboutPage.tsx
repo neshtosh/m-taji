@@ -52,20 +52,20 @@ const AboutPage = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="min-h-screen pt-16"
+      className="min-h-screen pt-16 bg-white dark:bg-gray-900"
     >
       {/* Hero Section */}
-      <section className="bg-primary py-20">
+      <section className="bg-black py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h1 className="text-4xl md:text-6xl font-bold arboria-font mb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold font-artistic italic mb-4 sm:mb-6">
               About M-taji
             </h1>
-            <p className="text-xl text-white max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl text-gray-300 max-w-3xl mx-auto px-4">
               M-taji believes in the power of collective compassion to create lasting change across Africa. 
               Learn about our journey, values, and our commitment to empowering African communities.
             </p>
@@ -74,26 +74,26 @@ const AboutPage = () => {
       </section>
 
       {/* Mission & Vision */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-white dark:bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start lg:items-center">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
-              <div className="flex items-center space-x-3 mb-6">
-                <Target className="h-8 w-8 text-primary" />
-                <h2 className="text-3xl font-bold text-text-dark">Our Mission</h2>
+              <div className="flex items-center space-x-3 mb-4 sm:mb-6">
+                <Target className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white font-artistic italic">Our Mission</h2>
               </div>
-              <p className="text-lg text-gray-600 leading-relaxed mb-6">
+              <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-4 sm:mb-6">
                 To empower African communities through sustainable development programs that 
                 address critical needs in education, healthcare, clean water, and food security. 
                 We work directly with local leaders to ensure solutions are culturally appropriate 
                 and community-driven.
               </p>
-              <p className="text-lg text-gray-600 leading-relaxed">
+              <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
                 Every project we undertake is designed to create lasting change that communities 
                 can maintain and expand upon long after our initial support.
               </p>
@@ -105,17 +105,17 @@ const AboutPage = () => {
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
-              <div className="flex items-center space-x-3 mb-6">
-                <Eye className="h-8 w-8 text-accent" />
-                <h2 className="text-3xl font-bold text-text-dark">Our Vision</h2>
+              <div className="flex items-center space-x-3 mb-4 sm:mb-6">
+                <Eye className="h-6 w-6 sm:h-8 sm:w-8 text-secondary" />
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white font-artistic italic">Our Vision</h2>
               </div>
-              <p className="text-lg text-gray-600 leading-relaxed mb-6">
+              <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-4 sm:mb-6">
                 A world where every person has access to the fundamental resources needed to 
                 thrive: clean water, quality education, healthcare, and nutritious food across Africa. 
                 We envision communities that are resilient, self-sufficient, and empowered 
                 to chart their own course toward prosperity.
               </p>
-              <p className="text-lg text-gray-600 leading-relaxed">
+              <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
                 Through transparent partnerships and innovative solutions, we strive to build 
                 bridges between those who wish to help and those who need support.
               </p>
@@ -134,15 +134,15 @@ const AboutPage = () => {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold text-text-dark arboria-font mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white font-artistic italic mb-4">
               Our Core Values
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto px-4">
               These principles guide every decision we make and every program we implement.
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             {values.map((value, index) => (
               <motion.div
                 key={value.title}
@@ -150,13 +150,13 @@ const AboutPage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="text-center p-8 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300"
+                className="text-center p-6 sm:p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300"
               >
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-light/10 rounded-full mb-6">
                   <value.icon className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="text-xl font-bold text-text-dark mb-4">{value.title}</h3>
-                <p className="text-gray-600">{value.description}</p>
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white font-artistic italic mb-3 sm:mb-4">{value.title}</h3>
+                <p className="text-sm sm:text-base text-gray-600">{value.description}</p>
               </motion.div>
             ))}
           </div>
@@ -172,18 +172,18 @@ const AboutPage = () => {
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-4xl font-bold arboria-font mb-6">
+            <h2 className="text-3xl sm:text-4xl font-bold font-artistic italic mb-4 sm:mb-6">
               Join Our Mission
             </h2>
-            <p className="text-xl text-white mb-8 max-w-2xl mx-auto">
+            <p className="text-lg sm:text-xl text-white mb-6 sm:mb-8 max-w-2xl mx-auto px-4">
               Whether through donations, volunteering, or spreading awareness, 
               there are many ways to be part of our community of changemakers.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-accent hover:bg-accent-dark text-text-dark font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <button className="bg-primary hover:bg-primary-dark text-black font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 w-full sm:w-auto">
                 Become a Donor
               </button>
-              <button className="border-2 border-white text-white font-bold py-3 px-8 rounded-full hover:bg-white hover:text-secondary transition-all duration-300 transform hover:scale-105">
+              <button className="border-2 border-white text-white font-bold py-3 px-8 rounded-full hover:bg-white hover:text-secondary transition-all duration-300 transform hover:scale-105 w-full sm:w-auto">
                 Volunteer With Us
               </button>
             </div>

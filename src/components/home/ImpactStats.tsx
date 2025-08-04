@@ -53,37 +53,37 @@ const ImpactStats = () => {
       value: animatedValues.lives,
       label: 'Lives Transformed',
       suffix: '+',
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-100',
+      color: 'text-primary',
+      bgColor: 'bg-primary/20',
     },
     {
       icon: Heart,
       value: animatedValues.donations,
       label: 'Generous Donors',
       suffix: '+',
-      color: 'text-red-600',
-      bgColor: 'bg-red-100',
+      color: 'text-secondary',
+      bgColor: 'bg-secondary/20',
     },
     {
       icon: Globe,
       value: animatedValues.countries,
       label: 'Countries Reached',
       suffix: '+',
-      color: 'text-green-600',
-      bgColor: 'bg-green-100',
+      color: 'text-primary',
+      bgColor: 'bg-primary/20',
     },
     {
       icon: Award,
       value: animatedValues.projects,
       label: 'Projects Completed',
       suffix: '+',
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100',
+      color: 'text-secondary',
+      bgColor: 'bg-secondary/20',
     },
   ];
 
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 bg-white dark:bg-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           ref={ref}
@@ -92,10 +92,10 @@ const ImpactStats = () => {
           transition={{ duration: 0.8 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 arboria-font mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white font-artistic italic mb-4">
             Our Global Impact
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
             Every number represents a life changed, a community strengthened, and hope restored. 
             Together, we're building a more compassionate world.
           </p>
@@ -108,7 +108,7 @@ const ImpactStats = () => {
               initial={{ opacity: 0, y: 50 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.8, delay: index * 0.1 }}
-              className="text-center p-8 rounded-2xl bg-gradient-to-br from-white to-gray-50 shadow-lg hover:shadow-xl transition-shadow duration-300"
+              className="text-center p-8 rounded-2xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-700 dark:to-gray-800 shadow-lg hover:shadow-xl transition-shadow duration-300"
             >
               <div className={`inline-flex items-center justify-center w-16 h-16 ${stat.bgColor} rounded-full mb-6`}>
                 <stat.icon className={`h-8 w-8 ${stat.color}`} />
@@ -116,7 +116,7 @@ const ImpactStats = () => {
               <div className={`text-4xl md:text-5xl font-bold ${stat.color} mb-2`}>
                 {stat.value.toLocaleString()}{stat.suffix}
               </div>
-              <div className="text-gray-600 font-medium">
+              <div className="text-gray-600 dark:text-gray-400 font-medium">
                 {stat.label}
               </div>
             </motion.div>

@@ -44,7 +44,7 @@ const HeroSection = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold arboria-font mb-6 leading-tight">
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold font-artistic italic mb-6 leading-tight">
             Transform Lives
             <span className="block text-accent">
               Through Compassion
@@ -69,7 +69,7 @@ const HeroSection = () => {
           >
             <button
               onClick={() => setShowModal(true)}
-              className="bg-accent hover:bg-accent-dark text-text-dark font-bold py-4 px-8 rounded-full transition-all duration-300 transform hover:scale-105 flex items-center space-x-2"
+              className="bg-primary hover:bg-primary-dark text-black font-bold py-4 px-8 rounded-full transition-all duration-300 transform hover:scale-105 flex items-center space-x-2"
             >
               <span>Start Giving Today</span>
               <ArrowRight className="h-5 w-5" />
@@ -92,11 +92,11 @@ const HeroSection = () => {
               <div className="text-white">Lives Impacted</div>
             </div>
             <div className="glass-effect p-6 rounded-lg">
-              <div className="text-3xl font-bold text-accent">$2.5M</div>
+              <div className="text-3xl font-bold text-secondary">$2.5M</div>
               <div className="text-white">Funds Raised</div>
             </div>
             <div className="glass-effect p-6 rounded-lg">
-              <div className="text-3xl font-bold text-secondary-light">25+</div>
+              <div className="text-3xl font-bold text-primary">25+</div>
               <div className="text-white">Countries Served</div>
             </div>
           </motion.div>

@@ -30,7 +30,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeTab = 'profile'
   ];
 
   return (
-    <header className="bg-gray-900 shadow-lg border-b border-gray-700">
+    <header className="bg-white dark:bg-black shadow-lg border-b border-gray-200 dark:border-gray-700">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
@@ -42,8 +42,8 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeTab = 'profile'
               <Logo variant="white" size="md" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white">M-TAJI</h1>
-              <p className="text-xs text-gray-400">Youth Changemakers Platform</p>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">M-TAJI</h1>
+              <p className="text-xs text-gray-600 dark:text-gray-400">Youth Leaders Platform</p>
             </div>
           </div>
 
@@ -53,7 +53,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeTab = 'profile'
               <button
                 key={item.id}
                 onClick={() => navigate(item.path)}
-                className="text-gray-300 hover:text-amber-400 font-medium transition-colors"
+                className="text-gray-700 dark:text-gray-300 hover:text-primary font-medium transition-colors"
               >
                 {item.name}
               </button>
@@ -68,12 +68,12 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeTab = 'profile'
               <input
                 type="text"
                 placeholder="Search..."
-                className="pl-10 pr-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-gray-800 text-white placeholder-gray-400"
+                className="pl-10 pr-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-gray-800 text-white placeholder-gray-400"
               />
             </div>
 
             {/* Notifications */}
-            <button className="relative p-2 text-gray-300 hover:text-amber-400 transition-colors">
+            <button className="relative p-2 text-gray-700 dark:text-gray-300 hover:text-primary transition-colors">
               <Bell className="h-5 w-5" />
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                 3
@@ -83,10 +83,10 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeTab = 'profile'
             {/* User Menu */}
             <div className="flex items-center space-x-3">
               <div className="text-right hidden md:block">
-                <p className="text-sm font-medium text-white">{user?.name}</p>
-                <p className="text-xs text-gray-400">Youth Changemaker</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">{user?.name}</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400">Youth Changemaker</p>
               </div>
-              <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center">
                 <span className="text-white font-semibold text-sm">
                   {user?.name?.charAt(0) || 'U'}
                 </span>
@@ -95,30 +95,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ activeTab = 'profile'
           </div>
         </div>
 
-        {/* Dashboard Navigation Tabs */}
-        <div className="mt-4">
-          <div className="flex space-x-1">
-            {[
-              { id: 'profile', name: 'Profile' },
-              { id: 'projects', name: 'Projects' },
-              { id: 'microblog', name: 'Microblog' },
-              { id: 'blog', name: 'Blog' },
-              { id: 'shop', name: 'Shop' }
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => handleTabClick(tab.id)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  activeTab === tab.id
-                    ? 'bg-amber-600 text-white'
-                    : 'text-gray-300 hover:bg-gray-700'
-                }`}
-              >
-                {tab.name}
-              </button>
-            ))}
-          </div>
-        </div>
+
       </div>
     </header>
   );

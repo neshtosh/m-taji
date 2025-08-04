@@ -27,9 +27,9 @@ const CallToAction = () => {
             <Heart className="h-10 w-10 text-white" fill="currentColor" />
           </div>
 
-          <h2 className="text-4xl md:text-6xl font-bold arboria-font mb-6">
+          <h2 className="text-4xl md:text-6xl font-bold font-artistic italic mb-6">
             Ready to Make a 
-            <span className="block text-accent">
+            <span className="block text-primary">
               Lasting Impact?
             </span>
           </h2>
@@ -61,8 +61,8 @@ const CallToAction = () => {
               viewport={{ once: true }}
               className="text-center"
             >
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-accent bg-opacity-20 rounded-full mb-4 backdrop-blur-sm">
-                <Users className="h-8 w-8 text-accent" />
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-primary bg-opacity-20 rounded-full mb-4 backdrop-blur-sm">
+                <Users className="h-8 w-8 text-primary" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Global Community</h3>
               <p className="text-white">Join 25,000+ donors making a difference</p>
@@ -75,8 +75,8 @@ const CallToAction = () => {
               viewport={{ once: true }}
               className="text-center"
             >
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-secondary-light bg-opacity-20 rounded-full mb-4 backdrop-blur-sm">
-                <ArrowRight className="h-8 w-8 text-secondary-light" />
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-secondary bg-opacity-20 rounded-full mb-4 backdrop-blur-sm">
+                <ArrowRight className="h-8 w-8 text-secondary" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Real Results</h3>
               <p className="text-white">Track your impact with regular updates</p>
@@ -92,7 +92,7 @@ const CallToAction = () => {
           >
             <button
               onClick={() => setShowModal(true)}
-              className="bg-accent hover:bg-accent-dark text-text-dark font-bold py-4 px-8 rounded-full transition-all duration-300 transform hover:scale-105 flex items-center space-x-2"
+              className="bg-primary hover:bg-primary-dark text-black font-bold py-4 px-8 rounded-full transition-all duration-300 transform hover:scale-105 flex items-center space-x-2"
             >
               <Heart className="h-5 w-5" fill="currentColor" />
               <span>Start Your Impact Journey</span>

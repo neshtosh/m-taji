@@ -97,25 +97,25 @@ const ChangemakersPage: React.FC = () => {
       title: '28,430',
       subtitle: 'Projects Supported',
       icon: Target,
-      color: 'from-teal-500 to-teal-600'
+      color: 'from-primary to-primary-dark'
     },
     {
       title: '8,470',
       subtitle: 'Youth Changemakers',
       icon: Users,
-      color: 'from-orange-500 to-orange-600'
+      color: 'from-secondary to-secondary-dark'
     },
     {
       title: 'KSh 180M',
       subtitle: 'Funds Raised',
       icon: TrendingUp,
-      color: 'from-yellow-500 to-yellow-600'
+      color: 'from-primary to-primary-dark'
     },
     {
       title: '412',
       subtitle: 'Innovative Solutions',
       icon: Lightbulb,
-      color: 'from-red-500 to-red-600'
+      color: 'from-secondary to-secondary-dark'
     }
   ];
 
@@ -202,111 +202,8 @@ const ChangemakersPage: React.FC = () => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen bg-gray-50 pt-16 relative pointer-events-auto"
+      className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-16 relative pointer-events-auto"
     >
-              {/* Hero Section */}
-        <section className="relative bg-gradient-to-br from-[#F1C40F] to-[#F39C12] text-gray-900 z-0">
-          <div className="container mx-auto px-4 py-20">
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              className="text-center max-w-4xl mx-auto"
-            >
-              <div className="mb-4">
-                <Link to="/" className="text-gray-800 hover:text-[#DB5A42] transition-colors text-sm">
-                  ← Back to Home
-                </Link>
-              </div>
-              <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight text-gray-900">
-                Youth Leading{' '}
-                <span className="text-[#DB5A42]">Sustainable</span> Change
-              </h1>
-              <p className="text-xl md:text-2xl mb-8 text-gray-800 leading-relaxed">
-                Connect with passionate young innovators, support transformative projects, and be part of Kenya's sustainable future. M-TAJI empowers youth to drive meaningful change in their communities.
-              </p>
-             
-                           {/* Search Bar in Hero */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-                className="w-full flex justify-center mb-8 px-4"
-              >
-                <div className="relative w-full max-w-2xl">
-                  <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-500">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1116.65 6.65a7.5 7.5 0 010 10.6z" />
-                    </svg>
-                  </span>
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search by name, location or category..."
-                    className="w-full py-3 md:py-4 pl-12 pr-4 bg-white text-gray-800 border border-gray-200 rounded-2xl shadow-lg focus:outline-none focus:ring-2 focus:ring-red-400 transition-all duration-200"
-                    aria-label="Search changemakers"
-                  />
-                  {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery('')}
-                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  )}
-                </div>
-              </motion.div>
-             
-                           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <motion.button 
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleExploreChangemakers}
-                  className="bg-[#00B8A9] hover:bg-[#00A89A] text-white font-semibold py-4 px-8 rounded-2xl transition-all duration-300 shadow-lg"
-                >
-                  Explore Changemakers
-                </motion.button>
-                <motion.button 
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => {
-                    // Scroll to impact metrics section
-                    const element = document.getElementById('impact-metrics');
-                    if (element) {
-                      element.scrollIntoView({ behavior: 'smooth' });
-                    }
-                  }}
-                  className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-4 px-8 rounded-2xl transition-all duration-300 shadow-lg"
-                >
-                  Learn More
-                </motion.button>
-              </div>
-           </motion.div>
-         </div>
-
-                 {/* Stats Bar */}
-         <div className="bg-white/20 backdrop-blur-sm border-t border-white/30">
-           <div className="container mx-auto px-4 py-6">
-             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-               <div>
-                 <div className="text-3xl font-bold text-gray-900">847</div>
-                 <div className="text-gray-800">Active Changemakers</div>
-               </div>
-               <div>
-                 <div className="text-3xl font-bold text-gray-900">2,156</div>
-                 <div className="text-gray-800">Projects Funded</div>
-               </div>
-               <div>
-                 <div className="text-3xl font-bold text-gray-900">KSh 180M</div>
-                 <div className="text-gray-800">Total Raised</div>
-               </div>
-             </div>
-           </div>
-         </div>
-      </section>
 
              {/* Impact Metrics Section */}
        <motion.section 
@@ -315,7 +212,7 @@ const ChangemakersPage: React.FC = () => {
          whileInView={{ opacity: 1, y: 0 }}
          viewport={{ once: true }}
          transition={{ duration: 0.8 }}
-         className="py-16 bg-white"
+         className="py-16 bg-white dark:bg-gray-800"
        >
          <div className="container mx-auto px-4">
            <motion.div
@@ -324,8 +221,8 @@ const ChangemakersPage: React.FC = () => {
              transition={{ duration: 0.6, delay: 0.2 }}
              className="text-center mb-12"
            >
-             <h2 className="text-4xl font-bold text-gray-900 mb-4">Our Impact</h2>
-             <p className="text-xl text-gray-600">Transforming communities through youth innovation</p>
+             <h2 className="text-4xl font-bold text-gray-900 dark:text-white font-artistic italic mb-4">Our Impact</h2>
+             <p className="text-xl text-gray-600 dark:text-gray-400">Transforming communities through youth innovation</p>
            </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -340,13 +237,13 @@ const ChangemakersPage: React.FC = () => {
                    transition: { duration: 0.3 }
                  }}
                  transition={{ duration: 0.6, delay: 0.3 + index * 0.1 }}
-                 className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-300"
+                 className="bg-white dark:bg-gray-700 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-600 hover:shadow-2xl transition-all duration-300"
                >
                 <div className={`w-16 h-16 bg-gradient-to-r ${metric.color} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
                   <metric.icon className="w-8 h-8 text-white" />
                 </div>
-                <div className="text-3xl font-bold text-gray-900 mb-2">{metric.title}</div>
-                <div className="text-gray-600">{metric.subtitle}</div>
+                <div className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{metric.title}</div>
+                <div className="text-gray-600 dark:text-gray-400">{metric.subtitle}</div>
               </motion.div>
             ))}
           </div>
@@ -360,7 +257,7 @@ const ChangemakersPage: React.FC = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="py-16 bg-gray-50"
+          className="py-16 bg-gray-50 dark:bg-gray-800"
         >
           <div className="container mx-auto px-4">
                         <motion.div
@@ -369,17 +266,17 @@ const ChangemakersPage: React.FC = () => {
                transition={{ duration: 0.6, delay: 0.4 }}
                className="text-center mb-12"
              >
-              <h2 className="text-4xl font-bold text-gray-900 mb-4">Featured Changemakers</h2>
-              <p className="text-xl text-gray-600">Meet the young innovators driving change across Kenya</p>
+              <h2 className="text-4xl font-bold text-gray-900 dark:text-white font-artistic italic mb-4">Featured Changemakers</h2>
+              <p className="text-xl text-gray-600 dark:text-gray-400">Meet the young innovators driving change across Kenya</p>
               
               {/* Search Results Indicator */}
               {searchQuery && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mt-4 p-3 bg-[#00B8A9]/10 border border-[#00B8A9]/20 rounded-xl"
+                  className="mt-4 p-3 bg-primary/10 border border-primary/20 rounded-xl"
                 >
-                  <p className="text-[#00B8A9] font-medium">
+                                      <p className="text-primary font-medium">
                     {filteredChangemakers.length === 0 
                       ? `No results found for "${searchQuery}"`
                       : `Found ${filteredChangemakers.length} changemaker${filteredChangemakers.length === 1 ? '' : 's'} for "${searchQuery}"`
@@ -418,7 +315,7 @@ const ChangemakersPage: React.FC = () => {
                   </div>
 
                   <div className="mb-4">
-                    <span className="inline-block bg-[#00B8A9]/10 text-[#00B8A9] font-semibold px-3 py-1 rounded-full text-sm mb-3">
+                    <span className="inline-block bg-primary/10 text-primary font-semibold px-3 py-1 rounded-full text-sm mb-3">
                       {changemaker.area}
                     </span>
                     <p className="text-gray-700 text-sm leading-relaxed mb-3">
@@ -438,7 +335,7 @@ const ChangemakersPage: React.FC = () => {
                                      <div className="flex items-center justify-between">
                      <button 
                        onClick={() => navigate(`/profile/${changemaker.id}`)}
-                       className="bg-[#00B8A9] hover:bg-[#00A89A] text-white font-semibold py-2 px-4 rounded-xl transition-colors"
+                       className="bg-primary hover:bg-primary-dark text-black font-semibold py-2 px-4 rounded-xl transition-colors"
                      >
                        View Profile
                      </button>
@@ -479,7 +376,7 @@ const ChangemakersPage: React.FC = () => {
                    <p className="text-gray-600 mb-4">Try adjusting your search terms or browse all changemakers</p>
                    <button
                      onClick={() => setSearchQuery('')}
-                     className="bg-[#00B8A9] hover:bg-[#00A89A] text-white font-semibold py-2 px-6 rounded-xl transition-colors"
+                     className="bg-primary hover:bg-primary-dark text-black font-semibold py-2 px-6 rounded-xl transition-colors"
                    >
                      Clear Search
                    </button>

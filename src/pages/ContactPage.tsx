@@ -65,20 +65,20 @@ const ContactPage = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="min-h-screen pt-16"
+      className="min-h-screen pt-16 bg-white dark:bg-gray-900"
     >
       {/* Hero Section */}
-      <section className="bg-accent py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-text-dark">
+      <section className="bg-black py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h1 className="text-4xl md:text-6xl font-bold arboria-font mb-6">
+            <h1 className="text-4xl md:text-6xl font-bold font-artistic italic mb-6">
               Get in Touch
             </h1>
-            <p className="text-xl text-text-dark max-w-3xl mx-auto">
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
               Have questions about our work? Want to get involved? We'd love to hear from you. 
               Reach out and let's start a conversation about making a difference together.
             </p>
@@ -87,7 +87,7 @@ const ContactPage = () => {
       </section>
 
       {/* Contact Info Cards */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-gray-50 dark:bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {contactInfo.map((info, index) => (
@@ -96,7 +96,7 @@ const ContactPage = () => {
                 initial={{ opacity: 0, y: 50 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: index * 0.1 }}
-                className="bg-white p-8 rounded-2xl shadow-lg text-center hover:shadow-xl transition-shadow duration-300"
+                className="bg-white dark:bg-gray-700 p-8 rounded-2xl shadow-lg text-center hover:shadow-xl transition-shadow duration-300"
               >
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-light/10 rounded-full mb-6">
                   <info.icon className="h-8 w-8 text-primary" />
@@ -251,7 +251,7 @@ const ContactPage = () => {
 
                 <div className="flex items-start space-x-4">
                   <div className="flex-shrink-0">
-                    <Users className="h-6 w-6 text-accent" />
+                    <Users className="h-6 w-6 text-primary" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-text-dark mb-1">Personal Touch</h3>
@@ -262,7 +262,7 @@ const ContactPage = () => {
                 </div>
               </div>
 
-              <div className="mt-8 p-6 bg-accent-light/10 rounded-2xl">
+              <div className="mt-8 p-6 bg-primary/10 rounded-2xl">
                 <h3 className="font-semibold text-text-dark mb-2">Quick Questions?</h3>
                 <p className="text-gray-600 mb-4">
                   Check out our FAQ section or follow us on social media for the latest updates.
@@ -271,7 +271,7 @@ const ContactPage = () => {
                   <button className="text-primary hover:text-primary-dark font-medium">
                     View FAQ
                   </button>
-                  <button className="text-accent hover:text-accent-dark font-medium">
+                  <button className="text-primary hover:text-primary-dark font-medium">
                     Follow Us
                   </button>
                 </div>

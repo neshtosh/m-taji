@@ -1,32 +1,35 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#00B8A9', // Teal Green
-          light: '#00D4C3',
-          dark: '#009A8C',
+          DEFAULT: '#FFD700', // Gold
+          light: '#FFE55C',
+          dark: '#D4AF37',
         },
         secondary: {
-          DEFAULT: '#DB5A42', // Reddish Orange
-          light: '#E67E5A',
-          dark: '#C44A35',
+          DEFAULT: '#10B981', // Green
+          light: '#34D399',
+          dark: '#059669',
         },
         accent: {
-          DEFAULT: '#F1C40F', // Mustard Yellow
-          light: '#F4D03F',
-          dark: '#D4AC0D',
+          DEFAULT: '#000000', // Black
+          light: '#1F2937',
+          dark: '#111827',
         },
         text: {
-          dark: '#1a1a1a',
-          light: '#ffffff',
+          dark: '#000000',
+          light: '#FFFFFF',
         }
       },
       fontFamily: {
         'arboria': ['Fredoka', 'sans-serif'],
         'sans': ['Fredoka', 'sans-serif'],
+        'artistic': ['Playfair Display', 'serif'],
+        'italic': ['Crimson Text', 'serif'],
       },
     },
   },

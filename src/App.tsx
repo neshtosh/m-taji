@@ -17,13 +17,17 @@ import PrivateRoute from './components/auth/PrivateRoute';
 import ProfilePage from './pages/ProfilePage';
 import BlogPage from './pages/BlogPage';
 import BlogPostPage from './pages/BlogPostPage';
+import ProjectDetailPage from './pages/ProjectDetailPage';
+import SettingsPage from './pages/SettingsPage';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <div className="min-h-screen bg-gray-50">
+      <ThemeProvider>
+        <Router>
+          <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
           <AnimatePresence mode="wait">
             <Routes>
               <Route path="/admin/login" element={<AdminLogin />} />
@@ -33,6 +37,16 @@ function App() {
               <Route path="/dashboard" element={
                 <PrivateRoute>
                   <DashboardPage />
+                </PrivateRoute>
+              } />
+              <Route path="/project/:id" element={
+                <PrivateRoute>
+                  <ProjectDetailPage />
+                </PrivateRoute>
+              } />
+              <Route path="/settings" element={
+                <PrivateRoute>
+                  <SettingsPage />
                 </PrivateRoute>
               } />
               <Route path="/" element={
@@ -109,6 +123,7 @@ function App() {
           </AnimatePresence>
         </div>
       </Router>
+        </ThemeProvider>
     </AuthProvider>
   );
 }

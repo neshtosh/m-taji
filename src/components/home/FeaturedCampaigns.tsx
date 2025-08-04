@@ -43,7 +43,7 @@ const FeaturedCampaigns = () => {
   ];
 
   return (
-    <section className="py-20 bg-gray-50">
+    <section className="py-20 bg-gray-50 dark:bg-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 50 }}
@@ -52,10 +52,10 @@ const FeaturedCampaigns = () => {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-bold text-text-dark arboria-font mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white font-artistic italic mb-4">
             Featured Campaigns
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
             Discover inspiring stories of hope and transformation. Your support makes these life-changing projects possible.
           </p>
         </motion.div>
@@ -68,7 +68,7 @@ const FeaturedCampaigns = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: index * 0.1 }}
               viewport={{ once: true }}
-              className="bg-white rounded-2xl shadow-lg overflow-hidden card-hover group"
+              className="bg-white dark:bg-gray-700 rounded-2xl shadow-lg overflow-hidden card-hover group"
             >
               <div className="relative overflow-hidden">
                 <img
@@ -77,7 +77,7 @@ const FeaturedCampaigns = () => {
                   className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
                 />
                 <div className="absolute top-4 left-4">
-                  <span className="bg-primary text-white px-3 py-1 rounded-full text-sm font-medium">
+                  <span className="bg-primary text-black px-3 py-1 rounded-full text-sm font-medium">
                     {campaign.category}
                   </span>
                 </div>
@@ -89,22 +89,22 @@ const FeaturedCampaigns = () => {
               </div>
 
               <div className="p-6">
-                <h3 className="text-xl font-bold text-text-dark mb-2 group-hover:text-primary transition-colors">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-primary transition-colors">
                   {campaign.title}
                 </h3>
-                <p className="text-gray-600 mb-4 line-clamp-2">
+                <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
                   {campaign.description}
                 </p>
 
-                <div className="flex items-center text-sm text-gray-500 mb-4">
+                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-4">
                   <MapPin className="h-4 w-4 mr-1" />
                   {campaign.location}
                 </div>
 
                 <div className="mb-4">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm text-gray-600">Progress</span>
-                    <span className="text-sm font-semibold text-text-dark">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Progress</span>
+                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
                       {campaign.progress}%
                     </span>
                   </div>
@@ -118,16 +118,16 @@ const FeaturedCampaigns = () => {
                     />
                   </div>
                   <div className="flex justify-between items-center mt-2">
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
                       ${campaign.raised.toLocaleString()} raised
                     </span>
-                    <span className="text-sm font-semibold text-text-dark">
+                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
                       ${campaign.goal.toLocaleString()} goal
                     </span>
                   </div>
                 </div>
 
-                <button className="w-full bg-accent hover:bg-accent-dark text-text-dark font-semibold py-3 px-6 rounded-full transition-all duration-300 flex items-center justify-center space-x-2 group transform hover:scale-105">
+                <button className="w-full bg-primary hover:bg-primary-dark text-black font-semibold py-3 px-6 rounded-full transition-all duration-300 flex items-center justify-center space-x-2 group transform hover:scale-105">
                   <span>Support This Cause</span>
                   <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </button>
