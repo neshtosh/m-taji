@@ -44,9 +44,9 @@ const HeroSection = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold font-artistic italic mb-6 leading-tight">
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold font-bold-rounded mb-6 leading-tight">
             Transform Lives
-            <span className="block text-accent">
+            <span className="block text-white font-bold-rounded">
               Through Compassion
             </span>
           </h1>

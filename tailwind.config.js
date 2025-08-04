@@ -25,12 +25,13 @@ export default {
           light: '#FFFFFF',
         }
       },
-      fontFamily: {
-        'arboria': ['Fredoka', 'sans-serif'],
-        'sans': ['Fredoka', 'sans-serif'],
-        'artistic': ['Playfair Display', 'serif'],
-        'italic': ['Crimson Text', 'serif'],
-      },
+                  fontFamily: {
+              'arboria': ['Fredoka', 'sans-serif'],
+              'sans': ['Fredoka', 'sans-serif'],
+              'artistic': ['Playfair Display', 'serif'],
+              'italic': ['Crimson Text', 'serif'],
+              'bold-rounded': ['Chelsea Market', 'cursive'],
+            },
     },
   },
   plugins: [],

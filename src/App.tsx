@@ -18,6 +18,7 @@ import ProfilePage from './pages/ProfilePage';
 import BlogPage from './pages/BlogPage';
 import BlogPostPage from './pages/BlogPostPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
+import CampaignDetailPage from './pages/CampaignDetailPage';
 import SettingsPage from './pages/SettingsPage';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -43,6 +44,16 @@ function App() {
                 <PrivateRoute>
                   <ProjectDetailPage />
                 </PrivateRoute>
+              } />
+              <Route path="/campaign/:id" element={
+                <>
+                  <Navbar />
+                  <main>
+                    <CampaignDetailPage />
+                  </main>
+                  <Footer />
+                  <FloatingDonateButton />
+                </>
               } />
               <Route path="/settings" element={
                 <PrivateRoute>

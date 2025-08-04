@@ -486,7 +486,7 @@ const SettingsPage: React.FC = () => {
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white font-artistic italic mb-2">Settings</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white font-bold-rounded mb-2">Settings</h1>
             <p className="text-gray-600 dark:text-gray-400">Manage your account preferences and privacy</p>
           </div>
 

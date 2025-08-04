@@ -18,7 +18,9 @@ import {
   Image,
   Video,
   Link as LinkIcon,
-  Share2
+  Share2,
+  Search,
+  X
 } from 'lucide-react';
 
 const DashboardPage: React.FC = () => {
@@ -26,6 +28,8 @@ const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
   const projectsPerPage = 6;
 
   const tabs = [
@@ -63,6 +67,82 @@ const DashboardPage: React.FC = () => {
       image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop'
     }
   ];
+
+  // Youth Leaders Data
+  const youthLeaders = [
+    {
+      id: 1,
+      name: 'Sarah Mwangi',
+      location: 'Nairobi, Kenya',
+      projects: ['Clean Water Initiative', 'Digital Literacy Program'],
+      avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150',
+      role: 'Community Leader',
+      impact: '500+ families served',
+      category: 'Health & Sanitation'
+    },
+    {
+      id: 2,
+      name: 'David Ochieng',
+      location: 'Kisumu, Kenya',
+      projects: ['Youth Mentorship Program', 'Agricultural Innovation'],
+      avatar: 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150',
+      role: 'Education Advocate',
+      impact: '200+ students trained',
+      category: 'Education'
+    },
+    {
+      id: 3,
+      name: 'Grace Wanjiku',
+      location: 'Mombasa, Kenya',
+      projects: ['Community Garden Project', 'Women Empowerment'],
+      avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150',
+      role: 'Environmental Activist',
+      impact: '150+ households benefited',
+      category: 'Agriculture'
+    },
+    {
+      id: 4,
+      name: 'John Okello',
+      location: 'Eldoret, Kenya',
+      projects: ['Sports Development', 'Youth Leadership Training'],
+      avatar: 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150',
+      role: 'Sports Coordinator',
+      impact: '300+ youth engaged',
+      category: 'Sports & Recreation'
+    },
+    {
+      id: 5,
+      name: 'Mary Nakato',
+      location: 'Kakamega, Kenya',
+      projects: ['Healthcare Access', 'Mental Health Awareness'],
+      avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150',
+      role: 'Healthcare Worker',
+      impact: '1000+ patients served',
+      category: 'Healthcare'
+    },
+    {
+      id: 6,
+      name: 'Peter Ssewanyana',
+      location: 'Kampala, Uganda',
+      projects: ['Tech Innovation Hub', 'Digital Skills Training'],
+      avatar: 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150',
+      role: 'Tech Entrepreneur',
+      impact: '500+ youth trained',
+      category: 'Technology'
+    }
+  ];
+
+  // Search functionality
+  const filteredYouthLeaders = youthLeaders.filter(leader => {
+    const query = searchQuery.toLowerCase();
+    return (
+      leader.name.toLowerCase().includes(query) ||
+      leader.location.toLowerCase().includes(query) ||
+      leader.projects.some(project => project.toLowerCase().includes(query)) ||
+      leader.role.toLowerCase().includes(query) ||
+      leader.category.toLowerCase().includes(query)
+    );
+  });
 
   const projectsDone = [
     {
@@ -237,6 +317,78 @@ const DashboardPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Youth Leaders Section */}
+      <div className="lg:col-span-3">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white">Youth Leaders</h3>
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              {filteredYouthLeaders.length} of {youthLeaders.length} leaders
+            </span>
+          </div>
+          
+          {searchQuery && (
+            <div className="mb-4 p-3 bg-primary/10 rounded-lg">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Showing results for: <span className="font-semibold text-primary">"{searchQuery}"</span>
+              </p>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredYouthLeaders.map((leader) => (
+              <div key={leader.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                <div className="flex items-start space-x-3">
+                  <img 
+                    src={leader.avatar} 
+                    alt={leader.name}
+                    className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-gray-900 dark:text-white text-sm mb-1">{leader.name}</h4>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{leader.role}</p>
+                    <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mb-2">
+                      <MapPin className="h-3 w-3 mr-1" />
+                      {leader.location}
+                    </div>
+                    <div className="space-y-1">
+                      {leader.projects.slice(0, 2).map((project, index) => (
+                        <div key={index} className="text-xs text-gray-600 dark:text-gray-300">
+                          • {project}
+                        </div>
+                      ))}
+                      {leader.projects.length > 2 && (
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          +{leader.projects.length - 2} more projects
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-2">
+                      <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full">
+                        {leader.category}
+                      </span>
+                    </div>
+                    <p className="text-xs text-green-600 dark:text-green-400 mt-1">{leader.impact}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {filteredYouthLeaders.length === 0 && searchQuery && (
+            <div className="text-center py-8">
+              <p className="text-gray-500 dark:text-gray-400">No youth leaders found matching your search.</p>
+              <button 
+                onClick={() => setSearchQuery('')}
+                className="mt-2 text-primary hover:text-primary-dark text-sm font-medium"
+              >
+                Clear search
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 
@@ -252,7 +404,7 @@ const DashboardPage: React.FC = () => {
         {/* Upload New Project Form - At the top */}
         <div className="bg-white rounded-xl shadow-lg p-6">
           <div className="flex justify-between items-center mb-6">
-                          <h3 className="text-xl font-bold text-gray-900 font-artistic italic">Upload New Project</h3>
+                          <h3 className="text-xl font-bold text-gray-900 font-bold-rounded">Upload New Project</h3>
             <span className="text-sm text-gray-500">Share your latest project</span>
           </div>
           
@@ -369,7 +521,7 @@ const DashboardPage: React.FC = () => {
         <div className="bg-white rounded-xl shadow-lg p-6">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h3 className="text-xl font-bold text-gray-900 font-artistic italic">My Projects</h3>
+              <h3 className="text-xl font-bold text-gray-900 font-bold-rounded">My Projects</h3>
               <p className="text-sm text-gray-500 mt-1">Showing {projectsDone.length} completed projects</p>
             </div>
             <div className="flex items-center space-x-2">
@@ -956,19 +1108,19 @@ const DashboardPage: React.FC = () => {
         {activeTab === 'profile' && (
           <>
             <div className="mb-8">
-                              <h1 className="text-3xl font-bold text-gray-900 dark:text-white font-artistic italic mb-2">Your Dashboard</h1>
-                <p className="text-gray-600 dark:text-gray-400">Manage your profile, projects, and community engagement</p>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white font-bold-rounded mb-2">Your Dashboard</h1>
+              <p className="text-gray-600 dark:text-gray-400">Manage your profile, projects, and community engagement</p>
             </div>
 
             {/* Key Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               {metrics.map((metric) => (
-                                 <div key={metric.name} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
-                   <div className="flex items-center justify-between">
-                     <div>
-                       <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{metric.name}</p>
-                       <p className="text-2xl font-bold text-gray-900 dark:text-white">{metric.value}</p>
-                     </div>
+                <div key={metric.name} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{metric.name}</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white">{metric.value}</p>
+                    </div>
                     <div className={`p-3 rounded-full ${metric.bgColor}`}>
                       <metric.icon className={`h-6 w-6 ${metric.color}`} />
                     </div>

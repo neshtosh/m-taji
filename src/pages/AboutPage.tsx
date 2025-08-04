@@ -62,7 +62,7 @@ const AboutPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold font-artistic italic mb-4 sm:mb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold font-bold-rounded mb-4 sm:mb-6">
               About M-taji
             </h1>
             <p className="text-lg sm:text-xl text-gray-300 max-w-3xl mx-auto px-4">
@@ -85,7 +85,7 @@ const AboutPage = () => {
             >
               <div className="flex items-center space-x-3 mb-4 sm:mb-6">
                 <Target className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
-                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white font-artistic italic">Our Mission</h2>
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white font-bold-rounded">Our Mission</h2>
               </div>
               <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-4 sm:mb-6">
                 To empower African communities through sustainable development programs that 
@@ -107,7 +107,7 @@ const AboutPage = () => {
             >
               <div className="flex items-center space-x-3 mb-4 sm:mb-6">
                 <Eye className="h-6 w-6 sm:h-8 sm:w-8 text-secondary" />
-                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white font-artistic italic">Our Vision</h2>
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white font-bold-rounded">Our Vision</h2>
               </div>
               <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-4 sm:mb-6">
                 A world where every person has access to the fundamental resources needed to 
@@ -134,7 +134,7 @@ const AboutPage = () => {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white font-artistic italic mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white font-bold-rounded mb-4">
               Our Core Values
             </h2>
             <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto px-4">
@@ -155,7 +155,7 @@ const AboutPage = () => {
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-light/10 rounded-full mb-6">
                   <value.icon className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white font-artistic italic mb-3 sm:mb-4">{value.title}</h3>
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white font-bold-rounded mb-3 sm:mb-4">{value.title}</h3>
                 <p className="text-sm sm:text-base text-gray-600">{value.description}</p>
               </motion.div>
             ))}

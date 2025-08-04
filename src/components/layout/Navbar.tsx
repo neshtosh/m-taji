@@ -5,11 +5,13 @@ import { Menu, X, User, UserPlus, ChevronDown, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import Logo from '../ui/Logo';
+import DonationModal from '../ui/DonationModal';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showDonationModal, setShowDonationModal] = useState(false);
   const location = useLocation();
   const { isAuthenticated, user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -140,7 +142,10 @@ const Navbar = () => {
                     </div>
                   )}
                 </div>
-                <button className="bg-primary hover:bg-primary-dark text-black font-semibold px-4 py-2 rounded-lg transition-colors">
+                <button 
+                  onClick={() => setShowDonationModal(true)}
+                  className="bg-primary hover:bg-primary-dark text-black font-semibold px-4 py-2 rounded-lg transition-colors"
+                >
                   Donate Now
                 </button>
               </div>
@@ -160,7 +165,10 @@ const Navbar = () => {
                   <UserPlus className="h-4 w-4" />
                   <span>Sign Up</span>
                 </Link>
-                <button className="bg-primary hover:bg-primary-dark text-black font-semibold px-4 py-2 rounded-lg transition-colors">
+                <button 
+                  onClick={() => setShowDonationModal(true)}
+                  className="bg-primary hover:bg-primary-dark text-black font-semibold px-4 py-2 rounded-lg transition-colors"
+                >
                   Donate Now
                 </button>
               </div>
@@ -252,7 +260,13 @@ const Navbar = () => {
                 >
                   Sign Out
                 </button>
-                <button className="w-full mt-4 bg-primary hover:bg-primary-dark text-black font-semibold px-4 py-2 rounded-lg transition-colors">
+                <button 
+                  onClick={() => {
+                    setShowDonationModal(true);
+                    setIsOpen(false);
+                  }}
+                  className="w-full mt-4 bg-primary hover:bg-primary-dark text-black font-semibold px-4 py-2 rounded-lg transition-colors"
+                >
                   Donate Now
                 </button>
               </div>
@@ -274,7 +288,13 @@ const Navbar = () => {
                   <UserPlus className="h-4 w-4" />
                   <span>Sign Up</span>
                 </Link>
-                <button className="w-full mt-4 bg-primary hover:bg-primary-dark text-black font-semibold px-4 py-2 rounded-lg transition-colors">
+                <button 
+                  onClick={() => {
+                    setShowDonationModal(true);
+                    setIsOpen(false);
+                  }}
+                  className="w-full mt-4 bg-primary hover:bg-primary-dark text-black font-semibold px-4 py-2 rounded-lg transition-colors"
+                >
                   Donate Now
                 </button>
               </div>
@@ -282,6 +302,12 @@ const Navbar = () => {
           </div>
         </motion.div>
       </div>
+      
+      {/* Donation Modal */}
+      <DonationModal 
+        isOpen={showDonationModal} 
+        onClose={() => setShowDonationModal(false)} 
+      />
     </motion.nav>
   );
 };

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Heart, Share2, Users, Target, TrendingUp, Lightbulb } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Heart, Share2, Users, Target, TrendingUp, Lightbulb, Search, X } from 'lucide-react';
 
 // Move featuredChangemakers outside the component to prevent recreation on every render
 const featuredChangemakers = [
@@ -221,7 +221,7 @@ const ChangemakersPage: React.FC = () => {
              transition={{ duration: 0.6, delay: 0.2 }}
              className="text-center mb-12"
            >
-             <h2 className="text-4xl font-bold text-gray-900 dark:text-white font-artistic italic mb-4">Our Impact</h2>
+             <h2 className="text-4xl font-bold text-gray-900 dark:text-white font-bold-rounded mb-4">Our Impact</h2>
              <p className="text-xl text-gray-600 dark:text-gray-400">Transforming communities through youth innovation</p>
            </motion.div>
 
@@ -266,8 +266,30 @@ const ChangemakersPage: React.FC = () => {
                transition={{ duration: 0.6, delay: 0.4 }}
                className="text-center mb-12"
              >
-              <h2 className="text-4xl font-bold text-gray-900 dark:text-white font-artistic italic mb-4">Featured Changemakers</h2>
+              <h2 className="text-4xl font-bold text-gray-900 dark:text-white font-bold-rounded mb-4">Featured Youth Leaders</h2>
               <p className="text-xl text-gray-600 dark:text-gray-400">Meet the young innovators driving change across Kenya</p>
+              
+              {/* Search Bar */}
+              <div className="max-w-md mx-auto mt-6">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search youth leaders by name, location, or area..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
               
               {/* Search Results Indicator */}
               {searchQuery && (

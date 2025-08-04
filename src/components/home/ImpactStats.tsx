@@ -92,7 +92,7 @@ const ImpactStats = () => {
           transition={{ duration: 0.8 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white font-artistic italic mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white font-bold-rounded mb-4">
             Our Global Impact
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">

@@ -27,7 +27,7 @@ const CallToAction = () => {
             <Heart className="h-10 w-10 text-white" fill="currentColor" />
           </div>
 
-          <h2 className="text-4xl md:text-6xl font-bold font-artistic italic mb-6">
+          <h2 className="text-4xl md:text-6xl font-bold font-bold-rounded mb-6">
             Ready to Make a 
             <span className="block text-primary">
               Lasting Impact?

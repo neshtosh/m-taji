@@ -1,8 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, MapPin, Calendar, Target } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const FeaturedCampaigns = () => {
+  const navigate = useNavigate();
   const campaigns = [
     {
       id: 1,
@@ -52,7 +54,7 @@ const FeaturedCampaigns = () => {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white font-artistic italic mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white font-bold-rounded mb-4">
             Featured Campaigns
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
@@ -68,7 +70,8 @@ const FeaturedCampaigns = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: index * 0.1 }}
               viewport={{ once: true }}
-              className="bg-white dark:bg-gray-700 rounded-2xl shadow-lg overflow-hidden card-hover group"
+              className="bg-white dark:bg-gray-700 rounded-2xl shadow-lg overflow-hidden card-hover group cursor-pointer"
+              onClick={() => navigate(`/campaign/${campaign.id}`)}
             >
               <div className="relative overflow-hidden">
                 <img
@@ -89,7 +92,13 @@ const FeaturedCampaigns = () => {
               </div>
 
               <div className="p-6">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-primary transition-colors">
+                <h3 
+                  className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-primary transition-colors cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/campaign/${campaign.id}`);
+                  }}
+                >
                   {campaign.title}
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
@@ -127,7 +136,13 @@ const FeaturedCampaigns = () => {
                   </div>
                 </div>
 
-                <button className="w-full bg-primary hover:bg-primary-dark text-black font-semibold py-3 px-6 rounded-full transition-all duration-300 flex items-center justify-center space-x-2 group transform hover:scale-105">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/campaign/${campaign.id}`);
+                  }}
+                  className="w-full bg-primary hover:bg-primary-dark text-black font-semibold py-3 px-6 rounded-full transition-all duration-300 flex items-center justify-center space-x-2 group transform hover:scale-105"
+                >
                   <span>Support This Cause</span>
                   <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </button>
