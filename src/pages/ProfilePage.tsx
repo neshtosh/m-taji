@@ -1,83 +1,51 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, MapPin, Users, Target, TrendingUp, Heart, Share2, Mail, Phone } from 'lucide-react';
-
-interface ChangemakerProfile {
-  id: number;
-  name: string;
-  age: number;
-  location: string;
-  area: string;
-  bio: string;
-  impact: string;
-  followers: number;
-  projects: number;
-  fundsRaised: string;
-  image: string;
-  email?: string;
-  phone?: string;
-  website?: string;
-  achievements: string[];
-  currentProjects: {
-    name: string;
-    description: string;
-    progress: number;
-    targetAmount: string;
-    raisedAmount: string;
-  }[];
-}
+import { fetchChangemakerProfile, ChangemakerProfile } from '../lib/changemakers';
 
 const ProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  
-  // Mock data - in a real app, this would come from an API
-  const changemakerData: ChangemakerProfile = {
-    id: 1,
-    name: 'Wanjiku Maina',
-    age: 24,
-    location: 'Nairobi',
-    area: 'Climate Action & Renewable Energy',
-    bio: 'Passionate environmental advocate working to bring clean energy solutions to rural communities. Leading innovative solar projects that transform lives and create sustainable futures for Kenyan communities.',
-    impact: '500+ families with clean energy',
-    followers: 2400,
-    projects: 3,
-    fundsRaised: 'KSh 450K',
-    image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=300&h=300&fit=crop&crop=face',
-    email: 'wanjiku.maina@example.com',
-    phone: '+254 700 123 456',
-    website: 'www.wanjikuenergy.org',
-    achievements: [
-      'Solar Energy Innovation Award 2023',
-      'Youth Environmental Leadership Recognition',
-      'Community Impact Excellence Award',
-      'Sustainable Development Champion'
-    ],
-    currentProjects: [
-      {
-        name: 'Solar for Schools',
-        description: 'Installing solar panels in 10 rural schools to provide clean energy and reduce electricity costs.',
-        progress: 75,
-        targetAmount: 'KSh 2.5M',
-        raisedAmount: 'KSh 1.875M'
-      },
-      {
-        name: 'Clean Water Initiative',
-        description: 'Solar-powered water purification systems for 5 communities.',
-        progress: 45,
-        targetAmount: 'KSh 1.8M',
-        raisedAmount: 'KSh 810K'
+  const [changemakerData, setChangemakerData] = useState<ChangemakerProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!id) {
+        setError('No changemaker ID provided');
+        setLoading(false);
+        return;
       }
-    ]
-  };
+
+      try {
+        setLoading(true);
+        const data = await fetchChangemakerProfile(id);
+        if (data) {
+          setChangemakerData(data);
+        } else {
+          setError('Changemaker not found');
+        }
+      } catch (err) {
+        console.error('Error fetching changemaker data:', err);
+        setError('Failed to load changemaker profile');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [id]);
 
   const handleShare = () => {
-    const shareText = `Check out ${changemakerData.name}, a youth changemaker working on ${changemakerData.area} in ${changemakerData.location}!`;
+    if (!changemakerData) return;
+    
+    const shareText = `Check out ${changemakerData.profile.name}, a youth changemaker working on ${changemakerData.area} in ${changemakerData.location}!`;
     const shareUrl = window.location.href;
     
     if (navigator.share) {
       navigator.share({
-        title: `${changemakerData.name} - Youth Changemaker`,
+        title: `${changemakerData.profile.name} - Youth Changemaker`,
         text: shareText,
         url: shareUrl
       });
@@ -88,15 +56,51 @@ const ProfilePage: React.FC = () => {
   };
 
   const handleContact = () => {
+    if (!changemakerData) return;
+    
     // In a real app, this would open a contact form or modal
-    const contactInfo = `Contact ${changemakerData.name}:\n\nEmail: ${changemakerData.email}\nPhone: ${changemakerData.phone}\nWebsite: ${changemakerData.website}`;
+    const contactInfo = `Contact ${changemakerData.profile.name}:\n\nEmail: ${changemakerData.email}\nPhone: ${changemakerData.phone}\nWebsite: ${changemakerData.website}`;
     alert(contactInfo);
   };
 
   const handleFollow = () => {
+    if (!changemakerData) return;
+    
     // In a real app, this would add to following list
-    alert(`You are now following ${changemakerData.name}!`);
+    alert(`You are now following ${changemakerData.profile.name}!`);
   };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 pt-16 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading changemaker profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error || !changemakerData) {
+    return (
+      <div className="min-h-screen bg-gray-50 pt-16 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-600 text-xl mb-4">⚠️</div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Profile Not Found</h2>
+          <p className="text-gray-600 mb-4">{error || 'This changemaker profile could not be loaded.'}</p>
+          <Link 
+            to="/changemakers"
+            className="inline-flex items-center text-primary hover:text-primary-dark font-medium"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Changemakers
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -132,11 +136,11 @@ const ProfilePage: React.FC = () => {
               {/* Profile Image */}
               <div className="text-center mb-6">
                 <img
-                  src={changemakerData.image}
-                  alt={changemakerData.name}
+                  src={changemakerData.image_url}
+                  alt={changemakerData.profile.name}
                   className="w-32 h-32 rounded-full object-cover mx-auto mb-4 border-4 border-amber-200"
                 />
-                <h1 className="text-2xl font-bold text-gray-900 mb-1">{changemakerData.name}</h1>
+                <h1 className="text-2xl font-bold text-gray-900 mb-1">{changemakerData.profile.name}</h1>
                 <p className="text-gray-600 mb-2">{changemakerData.age} years old</p>
                 <div className="flex items-center justify-center text-gray-600 mb-4">
                   <MapPin className="w-4 h-4 mr-1" />
@@ -227,17 +231,17 @@ const ProfilePage: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="text-center p-4 bg-gray-50 rounded-xl">
                   <Users className="w-8 h-8 text-amber-600 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-gray-900">{changemakerData.followers.toLocaleString()}</div>
+                  <div className="text-2xl font-bold text-gray-900">{changemakerData.followers_count.toLocaleString()}</div>
                   <div className="text-gray-600 text-sm">Followers</div>
                 </div>
                 <div className="text-center p-4 bg-gray-50 rounded-xl">
                   <Target className="w-8 h-8 text-amber-600 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-gray-900">{changemakerData.projects}</div>
+                  <div className="text-2xl font-bold text-gray-900">{changemakerData.projects_count}</div>
                   <div className="text-gray-600 text-sm">Projects</div>
                 </div>
                 <div className="text-center p-4 bg-gray-50 rounded-xl">
                   <TrendingUp className="w-8 h-8 text-amber-600 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-gray-900">{changemakerData.fundsRaised}</div>
+                  <div className="text-2xl font-bold text-gray-900">KSh {changemakerData.funds_raised.toLocaleString()}</div>
                   <div className="text-gray-600 text-sm">Funds Raised</div>
                 </div>
               </div>
@@ -252,10 +256,10 @@ const ProfilePage: React.FC = () => {
             >
               <h2 className="text-xl font-bold text-gray-900 mb-4">Achievements & Awards</h2>
               <div className="space-y-3">
-                {changemakerData.achievements.map((achievement, index) => (
-                  <div key={index} className="flex items-center p-3 bg-amber-50 rounded-lg">
+                {changemakerData.achievements.map((achievement) => (
+                  <div key={achievement.id} className="flex items-center p-3 bg-amber-50 rounded-lg">
                     <div className="w-2 h-2 bg-amber-600 rounded-full mr-3"></div>
-                    <span className="text-gray-700">{achievement}</span>
+                    <span className="text-gray-700">{achievement.title}</span>
                   </div>
                 ))}
               </div>
@@ -270,8 +274,8 @@ const ProfilePage: React.FC = () => {
             >
               <h2 className="text-xl font-bold text-gray-900 mb-4">Current Projects</h2>
               <div className="space-y-4">
-                {changemakerData.currentProjects.map((project, index) => (
-                  <div key={index} className="border border-gray-200 rounded-xl p-4">
+                {changemakerData.projects.map((project) => (
+                  <div key={project.id} className="border border-gray-200 rounded-xl p-4">
                     <div className="flex justify-between items-start mb-3">
                       <h3 className="font-semibold text-gray-900">{project.name}</h3>
                       <span className="text-sm text-gray-600">{project.progress}%</span>
@@ -286,8 +290,8 @@ const ProfilePage: React.FC = () => {
                       </div>
                     </div>
                     <div className="flex justify-between text-sm text-gray-600">
-                      <span>Target: {project.targetAmount}</span>
-                      <span>Raised: {project.raisedAmount}</span>
+                      <span>Target: KSh {project.target_amount.toLocaleString()}</span>
+                      <span>Raised: KSh {project.raised_amount.toLocaleString()}</span>
                     </div>
                   </div>
                 ))}

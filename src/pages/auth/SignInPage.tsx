@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
@@ -12,8 +12,27 @@ const SignInPage = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  const { login } = useAuth();
+  const { login, resendConfirmationEmail, loading: authLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect to dashboard if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && !authLoading) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, authLoading, navigate]);
+
+  // Show loading spinner while auth is initializing
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-secondary flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,10 +44,25 @@ const SignInPage = () => {
       if (success) {
         navigate('/dashboard');
       } else {
-        setError('Invalid email or password');
+        setError('Invalid email or password. Please check your credentials and try again.');
       }
-    } catch (err) {
-      setError('Login failed. Please try again.');
+    } catch (err: any) {
+      console.error('Login error:', err);
+      
+      // Handle specific Supabase error messages
+      if (err?.message?.includes('Invalid login credentials') || err?.message?.includes('Invalid email or password')) {
+        setError('Invalid email or password. Please check your credentials and try again.');
+      } else if (err?.message?.includes('Email not confirmed')) {
+        setError('Please check your email and confirm your account before signing in. If you haven\'t received a confirmation email, please check your spam folder.');
+      } else if (err?.message?.includes('Too many requests')) {
+        setError('Too many login attempts. Please wait a moment before trying again.');
+      } else if (err?.message?.includes('User not found')) {
+        setError('No account found with this email address. Please check your email or sign up for a new account.');
+      } else if (err?.message?.includes('Invalid email')) {
+        setError('Please enter a valid email address.');
+      } else {
+        setError('Login failed. Please check your connection and try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -61,7 +95,32 @@ const SignInPage = () => {
               animate={{ opacity: 1, y: 0 }}
               className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg"
             >
-              {error}
+              <div className="flex flex-col space-y-2">
+                <span>{error}</span>
+                {error.includes('Email not confirmed') && (
+                  <div className="text-sm">
+                    <span className="text-gray-600">Need to resend confirmation email? </span>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          await resendConfirmationEmail(email);
+                          setError('Confirmation email sent! Please check your inbox and spam folder.');
+                        } catch (err: any) {
+                          if (err?.message?.includes('User not found')) {
+                            setError('No account found with this email address. Please sign up first.');
+                          } else {
+                            setError('Failed to resend confirmation email. Please try again later.');
+                          }
+                        }
+                      }}
+                      className="text-primary hover:text-primary-dark font-medium underline"
+                    >
+                      Click here
+                    </button>
+                  </div>
+                )}
+              </div>
             </motion.div>
           )}
 
@@ -105,6 +164,14 @@ const SignInPage = () => {
               >
                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
+            </div>
+            <div className="mt-2 text-right">
+              <Link
+                to="/forgot-password"
+                className="text-sm text-primary hover:text-primary-dark font-medium"
+              >
+                Forgot your password?
+              </Link>
             </div>
           </div>
 

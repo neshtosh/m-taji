@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { Lock, Mail, Eye, EyeOff, User } from 'lucide-react';
@@ -17,8 +17,27 @@ const SignUpPage = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  const { register } = useAuth();
+  const { register, loading: authLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect to dashboard if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && !authLoading) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, authLoading, navigate]);
+
+  // Show loading spinner while auth is initializing
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-secondary flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -31,6 +50,17 @@ const SignUpPage = () => {
     e.preventDefault();
     setError('');
 
+    // Enhanced validation
+    if (!formData.name.trim()) {
+      setError('Please enter your full name');
+      return;
+    }
+
+    if (!formData.email.trim()) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -41,17 +71,34 @@ const SignUpPage = () => {
       return;
     }
 
+    // Check for strong password (optional enhancement)
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
+      setError('Password should contain at least one uppercase letter, one lowercase letter, and one number');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const success = await register(formData.name, formData.email, formData.password);
+      const success = await register(formData.name.trim(), formData.email.trim(), formData.password);
       if (success) {
         navigate('/dashboard');
       } else {
-        setError('Email already exists. Please use a different email or sign in.');
+        setError('Registration failed. Please try again.');
       }
-    } catch (err) {
-      setError('Registration failed. Please try again.');
+    } catch (err: any) {
+      // Handle specific Supabase error messages
+      if (err?.message?.includes('User already registered')) {
+        setError('An account with this email already exists. Please sign in instead.');
+      } else if (err?.message?.includes('Invalid email')) {
+        setError('Please enter a valid email address.');
+      } else if (err?.message?.includes('Password should be at least')) {
+        setError('Password is too weak. Please choose a stronger password.');
+      } else if (err?.message?.includes('Unable to validate email')) {
+        setError('Please check your email address and try again.');
+      } else {
+        setError('Registration failed. Please check your connection and try again.');
+      }
     } finally {
       setIsLoading(false);
     }

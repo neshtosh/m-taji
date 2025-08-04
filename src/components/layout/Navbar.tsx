@@ -28,6 +28,7 @@ const Navbar = () => {
   const navItems = [
     { name: 'Home', path: '/' },
     { name: 'Youth Leaders', path: '/changemakers' },
+    { name: 'Stories', path: '/stories' },
     { name: 'About', path: '/about' },
     { name: 'Contact', path: '/contact' },
   ];

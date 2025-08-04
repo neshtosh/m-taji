@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from './components/layout/Navbar';
 import HomePage from './pages/HomePage';
 import ChangemakersPage from './pages/ChangemakersPage';
+import StoriesPage from './pages/StoriesPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -25,9 +26,9 @@ import { ThemeProvider } from './context/ThemeContext';
 
 function App() {
   return (
-    <AuthProvider>
-      <ThemeProvider>
-        <Router>
+    <Router>
+      <AuthProvider>
+        <ThemeProvider>
           <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
           <AnimatePresence mode="wait">
             <Routes>
@@ -75,6 +76,16 @@ function App() {
                   <Navbar />
                   <main>
                     <ChangemakersPage />
+                  </main>
+                  <Footer />
+                  <FloatingDonateButton />
+                </>
+              } />
+              <Route path="/stories" element={
+                <>
+                  <Navbar />
+                  <main>
+                    <StoriesPage />
                   </main>
                   <Footer />
                   <FloatingDonateButton />
@@ -133,9 +144,9 @@ function App() {
             </Routes>
           </AnimatePresence>
         </div>
-      </Router>
         </ThemeProvider>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 
