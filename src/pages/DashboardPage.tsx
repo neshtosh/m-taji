@@ -6,10 +6,9 @@ import {
   Users, 
   Target, 
   TrendingUp, 
-  Award, 
-  Calendar, 
+
   MapPin, 
-  Eye, 
+  
   Heart, 
   MessageCircle,
   Plus,
