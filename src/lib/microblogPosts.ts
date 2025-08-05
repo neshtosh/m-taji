@@ -2,13 +2,15 @@ import { supabase } from './supabase';
 
 export interface MicroblogPost {
   id: string;
-  user_id: string;
+  author_id: string;
+  title: string;
   content: string;
-  image_url?: string;
-  video_url?: string;
-  likes_count: number;
-  comments_count: number;
-  shares_count: number;
+  category: string;
+  media: any;
+  author_name: string;
+  is_published: boolean;
+  likes: number;
+  shares: number;
   created_at: string;
   updated_at: string;
 }
@@ -26,7 +28,7 @@ export const fetchUserMicroblogPosts = async (userId: string): Promise<Microblog
     const { data, error } = await supabase
       .from('microblog_posts')
       .select('*')
-      .eq('user_id', userId)
+      .eq('author_id', userId)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -41,7 +43,7 @@ export const fetchUserMicroblogPosts = async (userId: string): Promise<Microblog
   }
 };
 
-// Fetch all microblog posts (for public viewing)
+// Fetch all published microblog posts (for public viewing)
 export const fetchAllMicroblogPosts = async (): Promise<MicroblogPostWithAuthor[]> => {
   try {
     const { data, error } = await supabase
@@ -50,6 +52,7 @@ export const fetchAllMicroblogPosts = async (): Promise<MicroblogPostWithAuthor[
         *,
         author:profiles(name, email)
       `)
+      .eq('is_published', true)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -65,11 +68,21 @@ export const fetchAllMicroblogPosts = async (): Promise<MicroblogPostWithAuthor[
 };
 
 // Create a new microblog post
-export const createMicroblogPost = async (postData: Omit<MicroblogPost, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'likes_count' | 'comments_count' | 'shares_count'>): Promise<MicroblogPost | null> => {
+export const createMicroblogPost = async (postData: Omit<MicroblogPost, 'id' | 'author_id' | 'created_at' | 'updated_at' | 'likes' | 'shares'>): Promise<MicroblogPost | null> => {
   try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.error('No authenticated user');
+      return null;
+    }
+
     const { data, error } = await supabase
       .from('microblog_posts')
-      .insert(postData)
+      .insert({
+        ...postData,
+        author_id: user.id,
+        author_name: user.user_metadata?.name || user.email || 'User'
+      })
       .select()
       .single();
 
@@ -133,7 +146,7 @@ export const likeMicroblogPost = async (postId: string): Promise<MicroblogPost |
     const { data, error } = await supabase
       .from('microblog_posts')
       .update({
-        likes_count: supabase.rpc('increment', { value: 1 })
+        likes: supabase.rpc('increment', { value: 1 })
       })
       .eq('id', postId)
       .select()

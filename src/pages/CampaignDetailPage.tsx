@@ -165,7 +165,7 @@ const CampaignDetailPage = () => {
                 <span className="bg-primary text-black px-3 py-1 rounded-full text-sm font-medium">
                   {campaign.category}
                 </span>
-                <span className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-3 py-1 rounded-full text-sm font-medium">
+                <span className="bg-teal-100 dark:bg-teal-900 text-teal-800 dark:text-teal-200 px-3 py-1 rounded-full text-sm font-medium">
                   Active
                 </span>
               </div>
@@ -276,7 +276,7 @@ const CampaignDetailPage = () => {
               <div className="space-y-4">
                 {campaign.updates.map((update, index) => (
                   <div key={index} className="flex items-start space-x-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <CheckCircle className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
+                    <CheckCircle className="h-5 w-5 text-teal-500 mt-1 flex-shrink-0" />
                     <div>
                       <div className="flex items-center space-x-2 mb-1">
                         <h4 className="font-semibold text-gray-900 dark:text-white">{update.title}</h4>

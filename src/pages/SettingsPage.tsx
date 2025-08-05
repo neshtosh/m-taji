@@ -138,10 +138,10 @@ const SettingsPage: React.FC = () => {
         </div>
 
         <div className="mt-6">
-          <button 
-            onClick={handleSaveProfile}
-            className="bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
-          >
+                        <button 
+                onClick={handleSaveProfile}
+                className="bg-primary hover:bg-primary-dark text-black font-semibold py-2 px-6 rounded-lg transition-colors"
+              >
             Save Changes
           </button>
         </div>
@@ -193,10 +193,10 @@ const SettingsPage: React.FC = () => {
         </div>
 
         <div className="mt-6">
-          <button 
-            onClick={handleChangePassword}
-            className="bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
-          >
+                        <button 
+                onClick={handleChangePassword}
+                className="bg-primary hover:bg-primary-dark text-black font-semibold py-2 px-6 rounded-lg transition-colors"
+              >
             Change Password
           </button>
         </div>

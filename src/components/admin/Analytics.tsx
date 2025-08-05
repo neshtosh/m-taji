@@ -72,7 +72,7 @@ const Analytics = () => {
   };
 
   const getGrowthColor = (rate: number) => {
-    return rate >= 0 ? 'text-green-600' : 'text-red-600';
+    return rate >= 0 ? 'text-teal-600' : 'text-red-600';
   };
 
   if (isLoading) {
@@ -171,8 +171,8 @@ const Analytics = () => {
               <p className="text-sm text-gray-600">Total Donors</p>
               <p className="text-2xl font-bold text-text-dark">{analytics.totalDonors.toLocaleString()}</p>
               <div className="flex items-center space-x-1 mt-1">
-                <TrendingUp className="h-4 w-4 text-green-600" />
-                <span className="text-sm font-medium text-green-600">+12.5%</span>
+                <TrendingUp className="h-4 w-4 text-teal-600" />
+                <span className="text-sm font-medium text-teal-600">+12.5%</span>
                 <span className="text-sm text-gray-500">vs last month</span>
               </div>
             </div>
@@ -345,9 +345,9 @@ const Analytics = () => {
             <div className="text-xs text-gray-500 mt-1">Currently running</div>
           </div>
           
-          <div className="text-center p-4 bg-green-50 rounded-lg">
-            <div className="text-2xl font-bold text-green-600">{analytics.completedProjects}</div>
-            <div className="text-sm text-green-600 font-medium">Completed Projects</div>
+                          <div className="text-center p-4 bg-teal-50 rounded-lg">
+                  <div className="text-2xl font-bold text-teal-600">{analytics.completedProjects}</div>
+                  <div className="text-sm text-teal-600 font-medium">Completed Projects</div>
             <div className="text-xs text-gray-500 mt-1">Successfully finished</div>
           </div>
           

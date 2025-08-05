@@ -2,19 +2,20 @@ import { supabase } from './supabase';
 
 export interface BlogPost {
   id: string;
-  user_id: string;
+  author_id: string;
   title: string;
-  content: string;
+  body: string;
   excerpt?: string;
-  featured_image_url?: string;
-  status: 'draft' | 'published' | 'archived';
+  cover_image?: string;
+  slug: string;
+  author_name: string;
   tags: string[];
+  is_published: boolean;
+  published_at?: string;
+  views: number;
   read_time: number;
-  views_count: number;
-  likes_count: number;
   created_at: string;
   updated_at: string;
-  published_at?: string;
 }
 
 export interface BlogPostWithAuthor extends BlogPost {
@@ -30,7 +31,7 @@ export const fetchUserBlogPosts = async (userId: string): Promise<BlogPost[]> =>
     const { data, error } = await supabase
       .from('blog_posts')
       .select('*')
-      .eq('user_id', userId)
+      .eq('author_id', userId)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -54,7 +55,7 @@ export const fetchPublishedBlogPosts = async (): Promise<BlogPostWithAuthor[]> =
         *,
         author:profiles(name, email)
       `)
-      .eq('status', 'published')
+      .eq('is_published', true)
       .order('published_at', { ascending: false });
 
     if (error) {
@@ -94,11 +95,35 @@ export const fetchBlogPostById = async (postId: string): Promise<BlogPostWithAut
 };
 
 // Create a new blog post
-export const createBlogPost = async (postData: Omit<BlogPost, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'views_count' | 'likes_count'>): Promise<BlogPost | null> => {
+export const createBlogPost = async (postData: Omit<BlogPost, 'id' | 'author_id' | 'created_at' | 'updated_at' | 'views' | 'read_time'>): Promise<BlogPost | null> => {
   try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.error('No authenticated user');
+      return null;
+    }
+
+    // Validate required fields
+    if (!postData.title || !postData.body) {
+      console.error('Missing required fields: title and body');
+      return null;
+    }
+
+    // Generate slug from title
+    const slug = postData.title.toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '') + '-' + Date.now();
+
     const { data, error } = await supabase
       .from('blog_posts')
-      .insert(postData)
+      .insert({
+        ...postData,
+        slug,
+        author_id: user.id,
+        author_name: user.user_metadata?.name || user.email || 'User',
+        read_time: calculateReadTime(postData.body),
+        excerpt: postData.excerpt || generateExcerpt(postData.body)
+      })
       .select()
       .single();
 
@@ -162,7 +187,7 @@ export const publishBlogPost = async (postId: string): Promise<BlogPost | null> 
     const { data, error } = await supabase
       .from('blog_posts')
       .update({
-        status: 'published',
+        is_published: true,
         published_at: new Date().toISOString()
       })
       .eq('id', postId)
@@ -187,7 +212,7 @@ export const unpublishBlogPost = async (postId: string): Promise<BlogPost | null
     const { data, error } = await supabase
       .from('blog_posts')
       .update({
-        status: 'draft',
+        is_published: false,
         published_at: null
       })
       .eq('id', postId)
@@ -224,21 +249,38 @@ export const uploadBlogImage = async (file: File, postId: string): Promise<strin
     const fileName = `blog-${postId}-${Date.now()}.${fileExt}`;
     const filePath = `${fileName}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from('project-images')
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false
-      });
+    // Try different bucket names in order of preference
+    const bucketNames = ['blog-images', 'project-images', 'images', 'uploads'];
+    let uploadSuccess = false;
+    let publicUrl = '';
 
-    if (uploadError) {
-      console.error('Error uploading blog image:', uploadError);
-      throw new Error('Failed to upload image. Please try again.');
+    for (const bucketName of bucketNames) {
+      try {
+        const { error: uploadError } = await supabase.storage
+          .from(bucketName)
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (!uploadError) {
+          const { data: { publicUrl: url } } = supabase.storage
+            .from(bucketName)
+            .getPublicUrl(filePath);
+          
+          publicUrl = url;
+          uploadSuccess = true;
+          break;
+        }
+      } catch (bucketError) {
+        console.log(`Bucket ${bucketName} not available, trying next...`);
+        continue;
+      }
     }
 
-    const { data: { publicUrl } } = supabase.storage
-      .from('project-images')
-      .getPublicUrl(filePath);
+    if (!uploadSuccess) {
+      throw new Error('No storage bucket available. Please create a bucket named "blog-images" or "project-images" in your Supabase project.');
+    }
 
     return publicUrl;
   } catch (error) {
@@ -249,6 +291,9 @@ export const uploadBlogImage = async (file: File, postId: string): Promise<strin
 
 // Calculate estimated read time based on content length
 export const calculateReadTime = (content: string): number => {
+  if (!content || typeof content !== 'string') {
+    return 1; // Default to 1 minute if no content
+  }
   const wordsPerMinute = 200;
   const wordCount = content.trim().split(/\s+/).length;
   const readTime = Math.ceil(wordCount / wordsPerMinute);
@@ -257,6 +302,9 @@ export const calculateReadTime = (content: string): number => {
 
 // Generate excerpt from content
 export const generateExcerpt = (content: string, maxLength: number = 150): string => {
+  if (!content || typeof content !== 'string') {
+    return '';
+  }
   const plainText = content.replace(/<[^>]*>/g, ''); // Remove HTML tags
   if (plainText.length <= maxLength) {
     return plainText;

@@ -6,14 +6,14 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#FFD700', // Gold
-          light: '#FFE55C',
-          dark: '#D4AF37',
+          DEFAULT: '#D4A017', // Mustard/Golden with darker hue
+          light: '#E6B800',
+          dark: '#B8860B',
         },
         secondary: {
-          DEFAULT: '#10B981', // Green
-          light: '#34D399',
-          dark: '#059669',
+          DEFAULT: '#0D9488', // Teal
+          light: '#14B8A6',
+          dark: '#0F766E',
         },
         accent: {
           DEFAULT: '#000000', // Black

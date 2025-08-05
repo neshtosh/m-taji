@@ -169,7 +169,7 @@ const SettingsPage: React.FC = () => {
                         </button>
                         <button className="p-4 border-2 border-gray-200 rounded-lg hover:border-gray-300">
                           <div className="text-center">
-                            <div className="w-8 h-8 bg-green-600 rounded-full mx-auto mb-2"></div>
+                            <div className="w-8 h-8 bg-teal-600 rounded-full mx-auto mb-2"></div>
                             <span className="font-medium text-gray-600">Auto</span>
                           </div>
                         </button>

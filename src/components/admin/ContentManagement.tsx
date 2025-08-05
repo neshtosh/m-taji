@@ -64,13 +64,13 @@ const ContentManagement = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'published':
-        return 'bg-green-100 text-green-800';
+        return 'bg-teal-100 text-teal-800';
       case 'draft':
         return 'bg-gray-100 text-gray-800';
       case 'scheduled':
         return 'bg-blue-100 text-blue-800';
       case 'archived':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-primary/20 text-primary-dark';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -96,7 +96,7 @@ const ContentManagement = () => {
           <h1 className="text-3xl font-bold text-gray-900 arboria-font">Content Management</h1>
           <p className="text-gray-600 mt-2">Create and manage stories, videos, and media content.</p>
         </div>
-        <button className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center space-x-2">
+                        <button className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center space-x-2">
           <Plus className="h-5 w-5" />
           <span>Add Content</span>
         </button>
@@ -106,8 +106,8 @@ const ContentManagement = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {[
           { label: 'Total Content', value: '42', icon: FileText, color: 'text-blue-600', bgColor: 'bg-blue-100' },
-          { label: 'Published', value: '28', icon: Eye, color: 'text-green-600', bgColor: 'bg-green-100' },
-          { label: 'Draft', value: '8', icon: Edit, color: 'text-yellow-600', bgColor: 'bg-yellow-100' },
+          { label: 'Published', value: '28', icon: Eye, color: 'text-teal-600', bgColor: 'bg-teal-100' },
+          { label: 'Draft', value: '8', icon: Edit, color: 'text-primary', bgColor: 'bg-primary/20' },
           { label: 'Total Views', value: '15.2K', icon: Eye, color: 'text-purple-600', bgColor: 'bg-purple-100' },
         ].map((stat, index) => (
           <motion.div
@@ -171,7 +171,7 @@ const ContentManagement = () => {
                     <span className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${
                       item.type === 'video' ? 'bg-red-100 text-red-800' :
                       item.type === 'gallery' ? 'bg-blue-100 text-blue-800' :
-                      'bg-green-100 text-green-800'
+                      'bg-teal-100 text-teal-800'
                     }`}>
                       {getTypeIcon(item.type)}
                       <span className="capitalize">{item.type}</span>
@@ -210,7 +210,7 @@ const ContentManagement = () => {
                       <button className="text-blue-600 hover:text-blue-700">
                         <Eye className="h-4 w-4" />
                       </button>
-                      <button className="text-green-600 hover:text-green-700">
+                      <button className="text-teal-600 hover:text-teal-700">
                         <Edit className="h-4 w-4" />
                       </button>
                       <button className="text-red-600 hover:text-red-700">

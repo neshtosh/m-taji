@@ -123,7 +123,7 @@ const BlogPostPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100">
+            <div className="min-h-screen bg-gradient-to-br from-primary/10 to-orange-100">
       {/* Back Navigation */}
       <div className="bg-white border-b border-gray-200">
         <div className="container mx-auto px-4 py-4">
@@ -155,7 +155,7 @@ const BlogPostPage: React.FC = () => {
             </div>
             <div className="p-8">
               <div className="flex items-center space-x-2 mb-4">
-                <span className="px-3 py-1 bg-amber-100 text-amber-800 text-sm font-medium rounded-full">
+                <span className="px-3 py-1 bg-primary/20 text-primary-dark text-sm font-medium rounded-full">
                   {blogPost.category}
                 </span>
                 <span className="text-gray-500 text-sm">{blogPost.readTime}</span>

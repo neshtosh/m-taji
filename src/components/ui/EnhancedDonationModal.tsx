@@ -195,7 +195,7 @@ const EnhancedDonationModal: React.FC<EnhancedDonationModalProps> = ({
                       step === stepName 
                         ? 'bg-primary text-white' 
                         : index < ['amount', 'details', 'payment', 'confirmation'].indexOf(step)
-                        ? 'bg-green-100 text-green-600'
+                        ? 'bg-teal-100 text-teal-600'
                         : 'bg-gray-100 text-gray-400'
                     }`}>
                       {index < ['amount', 'details', 'payment', 'confirmation'].indexOf(step) ? (
@@ -207,7 +207,7 @@ const EnhancedDonationModal: React.FC<EnhancedDonationModalProps> = ({
                     {index < 3 && (
                       <div className={`w-12 h-1 mx-2 ${
                         index < ['amount', 'details', 'payment', 'confirmation'].indexOf(step)
-                        ? 'bg-green-200'
+                        ? 'bg-teal-200'
                         : 'bg-gray-200'
                       }`} />
                     )}
@@ -454,8 +454,8 @@ const EnhancedDonationModal: React.FC<EnhancedDonationModalProps> = ({
                   animate={{ opacity: 1, x: 0 }}
                   className="text-center space-y-6"
                 >
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                    <CheckCircle className="h-8 w-8 text-green-600" />
+                                  <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto">
+                  <CheckCircle className="h-8 w-8 text-teal-600" />
                   </div>
                   
                   <div>
@@ -466,7 +466,7 @@ const EnhancedDonationModal: React.FC<EnhancedDonationModalProps> = ({
                   </div>
 
                   <div className="bg-green-50 p-4 rounded-lg">
-                    <p className="text-sm text-green-800">
+                    <p className="text-sm text-teal-800">
                       You will receive a confirmation email shortly. Thank you for your generosity!
                     </p>
                   </div>

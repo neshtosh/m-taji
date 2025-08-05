@@ -53,7 +53,7 @@ const CampaignManagement = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-100 text-green-800';
+        return 'bg-teal-100 text-teal-800';
       case 'completed':
         return 'bg-blue-100 text-blue-800';
       case 'paused':
@@ -74,7 +74,7 @@ const CampaignManagement = () => {
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center space-x-2 transition-all duration-300"
+                          className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center space-x-2 transition-all duration-300"
         >
           <Plus className="h-5 w-5" />
           <span>Create Campaign</span>
@@ -85,7 +85,7 @@ const CampaignManagement = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {[
           { label: 'Total Campaigns', value: '12', icon: Target, color: 'text-blue-600', bgColor: 'bg-blue-100' },
-          { label: 'Active Campaigns', value: '8', icon: Eye, color: 'text-green-600', bgColor: 'bg-green-100' },
+          { label: 'Active Campaigns', value: '8', icon: Eye, color: 'text-teal-600', bgColor: 'bg-teal-100' },
           { label: 'Total Raised', value: '$284,500', icon: DollarSign, color: 'text-purple-600', bgColor: 'bg-purple-100' },
           { label: 'Completed', value: '4', icon: Target, color: 'text-gray-600', bgColor: 'bg-gray-100' },
         ].map((stat, index) => (
@@ -159,7 +159,7 @@ const CampaignManagement = () => {
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
                       <div
-                        className="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full"
+                        className="bg-gradient-to-r from-blue-500 to-teal-500 h-2 rounded-full"
                         style={{ width: `${campaign.progress}%` }}
                       />
                     </div>
@@ -175,7 +175,7 @@ const CampaignManagement = () => {
                       <button className="text-blue-600 hover:text-blue-700">
                         <Eye className="h-4 w-4" />
                       </button>
-                      <button className="text-green-600 hover:text-green-700">
+                      <button className="text-teal-600 hover:text-teal-700">
                         <Edit className="h-4 w-4" />
                       </button>
                       <button className="text-red-600 hover:text-red-700">

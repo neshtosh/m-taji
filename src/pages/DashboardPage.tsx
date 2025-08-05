@@ -59,6 +59,7 @@ import {
   MicroblogPost
 } from '../lib/microblogPosts';
 import { fetchAllUserProfiles } from '../lib/changemakers';
+// import ShopManagement from '../components/dashboard/ShopManagement';
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -122,6 +123,7 @@ const DashboardPage: React.FC = () => {
   const [microblogPosts, setMicroblogPosts] = useState<MicroblogPost[]>([]);
   const [microblogLoading, setMicroblogLoading] = useState(false);
   const [microblogContent, setMicroblogContent] = useState('');
+  const [microblogCategory, setMicroblogCategory] = useState<'job' | 'event' | 'news' | 'announcement'>('news');
   const [selectedMicroblogImage, setSelectedMicroblogImage] = useState<File | null>(null);
   const [selectedMicroblogVideo, setSelectedMicroblogVideo] = useState<File | null>(null);
   const [microblogUploadProgress, setMicroblogUploadProgress] = useState<{ image: number; video: number }>({ image: 0, video: 0 });
@@ -165,27 +167,47 @@ const DashboardPage: React.FC = () => {
 
   // Fetch projects on component mount and when activeTab changes
   useEffect(() => {
-    if (activeTab === 'projects' && user) {
-      fetchProjects();
-    }
-    if (activeTab === 'blog' && user) {
-      fetchBlogPosts();
-    }
-    if (activeTab === 'microblog' && user) {
-      fetchMicroblogPosts();
-    }
-    if (activeTab === 'profile' && user) {
-      fetchYouthLeaders();
-      fetchProjects();
+    if (!user) return;
+    
+    try {
+      if (activeTab === 'projects') {
+        fetchProjects();
+      }
+      if (activeTab === 'blog') {
+        fetchBlogPosts();
+      }
+      if (activeTab === 'microblog') {
+        fetchMicroblogPosts();
+      }
+      if (activeTab === 'profile') {
+        fetchYouthLeaders();
+        fetchProjects();
+        fetchBlogPosts();
+        fetchMicroblogPosts();
+      }
+    } catch (error) {
+      console.error('Error in useEffect:', error);
     }
   }, [activeTab, user]);
 
   // Calculate metrics when data changes
   useEffect(() => {
-    if (user && projects.length > 0) {
+    if (user) {
       calculateDashboardMetrics();
     }
   }, [projects, blogPosts, microblogPosts, user]);
+
+  // Add timeout to prevent infinite loading
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (loading) {
+        console.log('Loading timeout reached, forcing dashboard to render');
+        setLoading(false);
+      }
+    }, 5000); // 5 second timeout
+
+    return () => clearTimeout(timeout);
+  }, [loading]);
 
   const fetchProjects = async () => {
     if (!user) return;
@@ -193,9 +215,11 @@ const DashboardPage: React.FC = () => {
     setLoading(true);
     try {
       const userProjects = await fetchUserProjects(user.id);
-      setProjects(userProjects);
+      setProjects(userProjects || []);
     } catch (error) {
       console.error('Error fetching projects:', error);
+      // If table doesn't exist, just set empty array
+      setProjects([]);
     } finally {
       setLoading(false);
     }
@@ -207,9 +231,11 @@ const DashboardPage: React.FC = () => {
     setBlogLoading(true);
     try {
       const userBlogPosts = await fetchUserBlogPosts(user.id);
-      setBlogPosts(userBlogPosts);
+      setBlogPosts(userBlogPosts || []);
     } catch (error) {
       console.error('Error fetching blog posts:', error);
+      // If table doesn't exist, just set empty array
+      setBlogPosts([]);
     } finally {
       setBlogLoading(false);
     }
@@ -221,9 +247,11 @@ const DashboardPage: React.FC = () => {
     setMicroblogLoading(true);
     try {
       const userMicroblogPosts = await fetchUserMicroblogPosts(user.id);
-      setMicroblogPosts(userMicroblogPosts);
+      setMicroblogPosts(userMicroblogPosts || []);
     } catch (error) {
       console.error('Error fetching microblog posts:', error);
+      // If table doesn't exist, just set empty array
+      setMicroblogPosts([]);
     } finally {
       setMicroblogLoading(false);
     }
@@ -499,6 +527,13 @@ const DashboardPage: React.FC = () => {
     setBlogUploadError(null);
     
     try {
+      // Validate required fields
+      if (!blogFormData.title || !blogFormData.content) {
+        setBlogUploadError('Title and content are required');
+        setBlogLoading(false);
+        return;
+      }
+
       // Calculate read time and generate excerpt
       const readTime = calculateReadTime(blogFormData.content);
       const excerpt = blogFormData.excerpt || generateExcerpt(blogFormData.content);
@@ -506,10 +541,14 @@ const DashboardPage: React.FC = () => {
       if (editingBlogPost) {
         // Update existing blog post
         let postData: Partial<BlogPost> = {
-          ...blogFormData,
-          read_time: readTime,
+          title: blogFormData.title,
+          body: blogFormData.content, // Map content to body
           excerpt,
-          user_id: user.id
+          tags: blogFormData.tags,
+          is_published: blogFormData.status === 'published',
+          read_time: readTime,
+          slug: blogFormData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') + '-' + Date.now(),
+          author_name: user.email || 'User'
         };
 
         // Upload new image if selected
@@ -517,7 +556,7 @@ const DashboardPage: React.FC = () => {
           setBlogUploadProgress(50);
           const uploadedImageUrl = await uploadBlogImage(selectedBlogImage, editingBlogPost.id);
           if (uploadedImageUrl) {
-            postData.featured_image_url = uploadedImageUrl;
+            postData.cover_image = uploadedImageUrl;
           }
           setBlogUploadProgress(100);
         }
@@ -534,10 +573,14 @@ const DashboardPage: React.FC = () => {
       } else {
         // Create new blog post
         const postData = {
-          ...blogFormData,
-          read_time: readTime,
+          title: blogFormData.title,
+          body: blogFormData.content, // Map content to body
           excerpt,
-          user_id: user.id
+          tags: blogFormData.tags,
+          is_published: blogFormData.status === 'published',
+          read_time: readTime,
+          slug: blogFormData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') + '-' + Date.now(),
+          author_name: user.email || 'User'
         };
 
         const newPost = await createBlogPost(postData);
@@ -545,12 +588,18 @@ const DashboardPage: React.FC = () => {
         if (newPost) {
           // Upload image if selected
           if (selectedBlogImage) {
-            setBlogUploadProgress(50);
-            const uploadedImageUrl = await uploadBlogImage(selectedBlogImage, newPost.id);
-            if (uploadedImageUrl) {
-              await updateBlogPost(newPost.id, { featured_image_url: uploadedImageUrl });
+            try {
+              setBlogUploadProgress(50);
+              const uploadedImageUrl = await uploadBlogImage(selectedBlogImage, newPost.id);
+              if (uploadedImageUrl) {
+                await updateBlogPost(newPost.id, { cover_image: uploadedImageUrl });
+              }
+              setBlogUploadProgress(100);
+            } catch (imageError) {
+              console.error('Image upload failed, but blog post was created:', imageError);
+              // Don't fail the entire operation if image upload fails
+              setBlogUploadProgress(100);
             }
-            setBlogUploadProgress(100);
           }
 
           resetBlogForm();
@@ -571,10 +620,10 @@ const DashboardPage: React.FC = () => {
     setEditingBlogPost(post);
     setBlogFormData({
       title: post.title,
-      content: post.content,
+      content: post.body, // Map body to content for the form
       excerpt: post.excerpt || '',
       tags: post.tags,
-      status: post.status
+      status: post.is_published ? 'published' : 'draft'
     });
     setShowBlogForm(true);
   };
@@ -657,8 +706,12 @@ const DashboardPage: React.FC = () => {
     
     try {
       const postData = {
+        title: microblogContent.trim().substring(0, 100), // Use first 100 chars as title
         content: microblogContent.trim(),
-        user_id: user.id
+        category: microblogCategory, // Use selected category
+        media: null, // Will be updated if media is uploaded
+        author_name: user.email || 'User',
+        is_published: true
       };
 
       const newPost = await createMicroblogPost(postData);
@@ -666,22 +719,32 @@ const DashboardPage: React.FC = () => {
       if (newPost) {
         // Upload image if selected
         if (selectedMicroblogImage) {
-          setMicroblogUploadProgress(prev => ({ ...prev, image: 50 }));
-          const uploadedImageUrl = await uploadMicroblogImage(selectedMicroblogImage, newPost.id);
-          if (uploadedImageUrl) {
-            await updateMicroblogPost(newPost.id, { image_url: uploadedImageUrl });
+          try {
+            setMicroblogUploadProgress(prev => ({ ...prev, image: 50 }));
+            const uploadedImageUrl = await uploadMicroblogImage(selectedMicroblogImage, newPost.id);
+            if (uploadedImageUrl) {
+              await updateMicroblogPost(newPost.id, { media: { image: uploadedImageUrl } });
+            }
+            setMicroblogUploadProgress(prev => ({ ...prev, image: 100 }));
+          } catch (imageError) {
+            console.error('Image upload failed, but microblog post was created:', imageError);
+            setMicroblogUploadProgress(prev => ({ ...prev, image: 100 }));
           }
-          setMicroblogUploadProgress(prev => ({ ...prev, image: 100 }));
         }
 
         // Upload video if selected
         if (selectedMicroblogVideo) {
-          setMicroblogUploadProgress(prev => ({ ...prev, video: 50 }));
-          const uploadedVideoUrl = await uploadMicroblogVideo(selectedMicroblogVideo, newPost.id);
-          if (uploadedVideoUrl) {
-            await updateMicroblogPost(newPost.id, { video_url: uploadedVideoUrl });
+          try {
+            setMicroblogUploadProgress(prev => ({ ...prev, video: 50 }));
+            const uploadedVideoUrl = await uploadMicroblogVideo(selectedMicroblogVideo, newPost.id);
+            if (uploadedVideoUrl) {
+              await updateMicroblogPost(newPost.id, { media: { video: uploadedVideoUrl } });
+            }
+            setMicroblogUploadProgress(prev => ({ ...prev, video: 100 }));
+          } catch (videoError) {
+            console.error('Video upload failed, but microblog post was created:', videoError);
+            setMicroblogUploadProgress(prev => ({ ...prev, video: 100 }));
           }
-          setMicroblogUploadProgress(prev => ({ ...prev, video: 100 }));
         }
 
         // Reset form
@@ -784,7 +847,7 @@ const DashboardPage: React.FC = () => {
     
     // Blog metrics
     const totalBlogPosts = blogPosts.length;
-    const publishedBlogPosts = blogPosts.filter(p => p.status === 'published').length;
+    const publishedBlogPosts = blogPosts.filter(p => p.is_published).length;
     
     // Microblog metrics
     const totalMicroblogPosts = microblogPosts.length;
@@ -822,6 +885,38 @@ const DashboardPage: React.FC = () => {
     });
   };
 
+  // Calculate real-time metrics for display
+  const realMetrics = [
+    { 
+      name: 'Total Projects', 
+      value: dashboardMetrics.totalProjects.toString(), 
+      icon: Target, 
+      color: 'text-primary', 
+      bgColor: 'bg-primary/20' 
+    },
+    { 
+      name: 'Blog Posts', 
+      value: dashboardMetrics.totalBlogPosts.toString(), 
+      icon: FileText, 
+      color: 'text-secondary', 
+      bgColor: 'bg-secondary/20' 
+    },
+    { 
+      name: 'Microblogs', 
+      value: dashboardMetrics.totalMicroblogPosts.toString(), 
+      icon: MessageCircle, 
+      color: 'text-primary', 
+      bgColor: 'bg-primary/20' 
+    },
+    { 
+      name: 'Total Impact', 
+      value: `${dashboardMetrics.totalFundsRaised.toLocaleString()}`, 
+      icon: TrendingUp, 
+      color: 'text-secondary', 
+      bgColor: 'bg-secondary/20' 
+    }
+  ];
+
   // Search functionality
   const filteredYouthLeaders = youthLeaders.filter((leader: any) => {
     const query = searchQuery.toLowerCase();
@@ -842,7 +937,7 @@ const DashboardPage: React.FC = () => {
       <div className="lg:col-span-1">
         <div className="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
           <div className="text-center mb-6">
-            <div className="w-24 h-24 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-24 h-24 bg-gradient-to-r from-primary to-primary-dark rounded-full flex items-center justify-center mx-auto mb-4">
                               <span className="text-gray-900 dark:text-white font-bold text-2xl">
                 {user?.name?.charAt(0) || 'U'}
               </span>
@@ -859,7 +954,7 @@ const DashboardPage: React.FC = () => {
             </div>
             <div className="flex items-center justify-between">
               <span className="text-gray-400">Completed</span>
-              <span className="font-medium text-green-400">{dashboardMetrics.completedProjects}</span>
+                              <span className="font-medium text-teal-400">{dashboardMetrics.completedProjects}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-gray-400">In Progress</span>
@@ -871,7 +966,7 @@ const DashboardPage: React.FC = () => {
             </div>
             <div className="flex items-center justify-between">
               <span className="text-gray-400">Top Category</span>
-              <span className="font-medium text-amber-400">{dashboardMetrics.topCategory}</span>
+              <span className="font-medium text-primary">{dashboardMetrics.topCategory}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-gray-400">Blog Posts</span>
@@ -919,12 +1014,12 @@ const DashboardPage: React.FC = () => {
                     <h4 className="font-semibold text-gray-900 dark:text-white text-sm mb-1">{project.title}</h4>
                     <p className="text-xs text-gray-400 mb-2 line-clamp-2">{project.description}</p>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs bg-amber-900 text-amber-300 px-2 py-1 rounded-full">
+                      <span className="text-xs bg-primary-dark text-primary-light px-2 py-1 rounded-full">
                         {project.category}
                       </span>
                       <span className="text-xs text-gray-500">{project.completion_date}</span>
                     </div>
-                    <p className="text-xs text-green-400 mt-1">{project.impact_description}</p>
+                    <p className="text-xs text-teal-400 mt-1">{project.impact_description}</p>
                     <div className="flex space-x-2 mt-2">
                       <button className="text-xs text-blue-400 hover:text-blue-300 font-medium">Fundraise</button>
                       <Link to={`/project/${project.id}`} className="text-xs text-gray-400 hover:text-gray-300">View</Link>
@@ -958,8 +1053,8 @@ const DashboardPage: React.FC = () => {
               <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{dashboardMetrics.totalProjects}</div>
               <div className="text-xs text-gray-600 dark:text-gray-400">Total Projects</div>
             </div>
-            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3">
-              <div className="text-2xl font-bold text-green-600 dark:text-green-400">{dashboardMetrics.completedProjects}</div>
+                            <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-3">
+                  <div className="text-2xl font-bold text-teal-600 dark:text-teal-400">{dashboardMetrics.completedProjects}</div>
               <div className="text-xs text-gray-600 dark:text-gray-400">Completed</div>
             </div>
             <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3">
@@ -1013,7 +1108,7 @@ const DashboardPage: React.FC = () => {
                     <h5 className="font-medium text-gray-900 dark:text-white text-sm">{project.title}</h5>
                     <div className="flex items-center space-x-2 mt-1">
                       <span className={`text-xs px-2 py-1 rounded-full ${
-                        project.status === 'completed' ? 'bg-green-900 text-green-300' :
+                        project.status === 'completed' ? 'bg-teal-900 text-teal-300' :
                         project.status === 'in_progress' ? 'bg-orange-900 text-orange-300' :
                         'bg-gray-900 text-gray-300'
                       }`}>
@@ -1051,7 +1146,7 @@ const DashboardPage: React.FC = () => {
             {filteredYouthLeaders.map((leader: any) => (
               <div key={leader.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
                 <div className="flex items-start space-x-3">
-                  <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 bg-gradient-to-r from-primary to-primary-dark rounded-full flex items-center justify-center flex-shrink-0">
                     <span className="text-gray-900 font-bold text-lg">
                       {leader.name?.charAt(0) || 'U'}
                     </span>
@@ -1073,7 +1168,7 @@ const DashboardPage: React.FC = () => {
                         Active Member
                       </span>
                     </div>
-                    <p className="text-xs text-green-600 dark:text-green-400 mt-1">Contributing to change</p>
+                    <p className="text-xs text-teal-600 dark:text-teal-400 mt-1">Contributing to change</p>
                   </div>
                 </div>
               </div>
@@ -1181,13 +1276,13 @@ const DashboardPage: React.FC = () => {
                   />
                   {selectedImage && (
                     <div className="mt-2">
-                      <p className="text-sm text-green-600">✓ {selectedImage.name}</p>
+                      <p className="text-sm text-teal-600">✓ {selectedImage.name}</p>
                       <p className="text-xs text-gray-500">Size: {(selectedImage.size / 1024 / 1024).toFixed(2)} MB</p>
                       {uploadProgress.image > 0 && uploadProgress.image < 100 && (
                         <div className="mt-1">
                           <div className="w-full bg-gray-200 rounded-full h-2">
                             <div 
-                              className="bg-green-600 h-2 rounded-full transition-all duration-300"
+                              className="bg-teal-600 h-2 rounded-full transition-all duration-300"
                               style={{ width: `${uploadProgress.image}%` }}
                             ></div>
                 </div>
@@ -1207,13 +1302,13 @@ const DashboardPage: React.FC = () => {
                   />
                   {selectedVideo && (
                     <div className="mt-2">
-                      <p className="text-sm text-green-600">✓ {selectedVideo.name}</p>
+                      <p className="text-sm text-teal-600">✓ {selectedVideo.name}</p>
                       <p className="text-xs text-gray-500">Size: {(selectedVideo.size / 1024 / 1024).toFixed(2)} MB</p>
                       {uploadProgress.video > 0 && uploadProgress.video < 100 && (
                         <div className="mt-1">
                           <div className="w-full bg-gray-200 rounded-full h-2">
                             <div 
-                              className="bg-green-600 h-2 rounded-full transition-all duration-300"
+                              className="bg-teal-600 h-2 rounded-full transition-all duration-300"
                               style={{ width: `${uploadProgress.video}%` }}
                             ></div>
                 </div>
@@ -1382,7 +1477,7 @@ const DashboardPage: React.FC = () => {
                       </div>
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-full">
+                    <span className="text-xs bg-primary/20 text-primary-dark px-2 py-1 rounded-full">
                       {project.category}
                     </span>
                           <span className="text-xs text-gray-500">{project.completion_date}</span>
@@ -1390,7 +1485,7 @@ const DashboardPage: React.FC = () => {
                   <h4 className="font-semibold text-gray-900 mb-2">{project.title}</h4>
                   <p className="text-sm text-gray-600 mb-3 line-clamp-2">{project.description}</p>
                   <div className="flex items-center justify-between">
-                          <span className="text-sm text-green-600 font-medium">{project.impact_description}</span>
+                          <span className="text-sm text-teal-600 font-medium">{project.impact_description}</span>
                     <div className="flex space-x-2">
                             <button 
                               onClick={() => handleEditProject(project)}
@@ -1525,13 +1620,13 @@ const DashboardPage: React.FC = () => {
             {/* File upload indicators */}
             {selectedMicroblogImage && (
               <div className="mt-2">
-                <p className="text-sm text-green-600">✓ {selectedMicroblogImage.name}</p>
+                                      <p className="text-sm text-teal-600">✓ {selectedMicroblogImage.name}</p>
                 <p className="text-xs text-gray-500">Size: {(selectedMicroblogImage.size / 1024 / 1024).toFixed(2)} MB</p>
               </div>
             )}
             {selectedMicroblogVideo && (
               <div className="mt-2">
-                <p className="text-sm text-green-600">✓ {selectedMicroblogVideo.name}</p>
+                                      <p className="text-sm text-teal-600">✓ {selectedMicroblogVideo.name}</p>
                 <p className="text-xs text-gray-500">Size: {(selectedMicroblogVideo.size / 1024 / 1024).toFixed(2)} MB</p>
               </div>
             )}
@@ -1541,10 +1636,10 @@ const DashboardPage: React.FC = () => {
                 {microblogUploadProgress.image > 0 && (
                   <div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-green-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${microblogUploadProgress.image}%` }}
-                      ></div>
+                                                  <div 
+                              className="bg-teal-600 h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${microblogUploadProgress.image}%` }}
+                            ></div>
                     </div>
                     <p className="text-xs text-gray-500">Uploading image...</p>
                   </div>
@@ -1552,10 +1647,10 @@ const DashboardPage: React.FC = () => {
                 {microblogUploadProgress.video > 0 && (
                   <div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-green-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${microblogUploadProgress.video}%` }}
-                      ></div>
+                                                  <div 
+                              className="bg-teal-600 h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${microblogUploadProgress.video}%` }}
+                            ></div>
                     </div>
                     <p className="text-xs text-gray-500">Uploading video...</p>
                   </div>
@@ -1571,28 +1666,40 @@ const DashboardPage: React.FC = () => {
           </div>
         </div>
         <div className="flex items-center justify-between">
-          <div className="flex space-x-2">
-            <label className="p-2 text-gray-500 hover:text-amber-600 transition-colors cursor-pointer">
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/gif,image/webp"
-                onChange={handleMicroblogImageChange}
-                className="hidden"
-              />
-              <Image className="h-5 w-5" />
-            </label>
-            <label className="p-2 text-gray-500 hover:text-amber-600 transition-colors cursor-pointer">
-              <input
-                type="file"
-                accept="video/mp4,video/webm,video/ogg"
-                onChange={handleMicroblogVideoChange}
-                className="hidden"
-              />
-              <Video className="h-5 w-5" />
-            </label>
-            <button className="p-2 text-gray-500 hover:text-amber-600 transition-colors">
-              <LinkIcon className="h-5 w-5" />
-            </button>
+          <div className="flex items-center space-x-4">
+            <div className="flex space-x-2">
+              <label className="p-2 text-gray-500 hover:text-primary transition-colors cursor-pointer">
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  onChange={handleMicroblogImageChange}
+                  className="hidden"
+                />
+                <Image className="h-5 w-5" />
+              </label>
+              <label className="p-2 text-gray-500 hover:text-primary transition-colors cursor-pointer">
+                <input
+                  type="file"
+                  accept="video/mp4,video/webm,video/ogg"
+                  onChange={handleMicroblogVideoChange}
+                  className="hidden"
+                />
+                <Video className="h-5 w-5" />
+              </label>
+              <button className="p-2 text-gray-500 hover:text-primary transition-colors">
+                <LinkIcon className="h-5 w-5" />
+              </button>
+            </div>
+            <select
+              value={microblogCategory}
+              onChange={(e) => setMicroblogCategory(e.target.value as 'job' | 'event' | 'news' | 'announcement')}
+              className="px-3 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+            >
+              <option value="news">News</option>
+              <option value="event">Event</option>
+              <option value="job">Job</option>
+              <option value="announcement">Announcement</option>
+            </select>
           </div>
           <button 
             onClick={handleSubmitMicroblogPost}
@@ -1639,20 +1746,20 @@ const DashboardPage: React.FC = () => {
                 </div>
                 <p className="text-gray-700 mb-3">{post.content}</p>
                 {/* Display image if exists */}
-                {post.image_url && (
+                {post.media?.image && (
                   <div className="mb-3">
                     <img 
-                      src={post.image_url} 
+                      src={post.media.image} 
                       alt="Post image"
                       className="w-full max-h-96 object-cover rounded-lg"
                     />
                   </div>
                 )}
                 {/* Display video if exists */}
-                {post.video_url && (
+                {post.media?.video && (
                   <div className="mb-3">
                     <video 
-                      src={post.video_url} 
+                      src={post.media.video} 
                       controls
                       className="w-full max-h-96 rounded-lg"
                     />
@@ -1664,15 +1771,15 @@ const DashboardPage: React.FC = () => {
                     className="flex items-center space-x-1 hover:text-amber-600 transition-colors"
                   >
                     <Heart className="h-4 w-4" />
-                    <span>{post.likes_count}</span>
+                    <span>{post.likes}</span>
                   </button>
                   <button className="flex items-center space-x-1 hover:text-amber-600 transition-colors">
                     <MessageCircle className="h-4 w-4" />
-                    <span>{post.comments_count}</span>
+                    <span>0</span>
                   </button>
                   <button className="flex items-center space-x-1 hover:text-amber-600 transition-colors">
                     <Share2 className="h-4 w-4" />
-                    <span>{post.shares_count}</span>
+                    <span>{post.shares}</span>
                   </button>
                 </div>
               </div>
@@ -1748,15 +1855,15 @@ const DashboardPage: React.FC = () => {
               />
               {selectedBlogImage && (
                 <div className="mt-2">
-                  <p className="text-sm text-green-600">✓ {selectedBlogImage.name}</p>
+                                        <p className="text-sm text-teal-600">✓ {selectedBlogImage.name}</p>
                   <p className="text-xs text-gray-500">Size: {(selectedBlogImage.size / 1024 / 1024).toFixed(2)} MB</p>
                   {blogUploadProgress > 0 && blogUploadProgress < 100 && (
                     <div className="mt-1">
                       <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-green-600 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${blogUploadProgress}%` }}
-                        ></div>
+                                                    <div 
+                              className="bg-teal-600 h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${blogUploadProgress}%` }}
+                            ></div>
                       </div>
                       <p className="text-xs text-gray-500 mt-1">Uploading image...</p>
                     </div>
@@ -1851,18 +1958,18 @@ const DashboardPage: React.FC = () => {
                 {blogPosts.map((post) => (
                   <div key={post.id} className="bg-gray-50 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
                     <img 
-                      src={post.featured_image_url || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=200&fit=crop'} 
+                      src={post.cover_image || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=200&fit=crop'} 
                       alt={post.title}
                       className="w-full h-48 object-cover"
                     />
                     <div className="p-4">
                       <div className="flex items-center justify-between mb-2">
                         <span className={`text-xs px-2 py-1 rounded-full ${
-                          post.status === 'published' 
-                            ? 'bg-green-100 text-green-800' 
+                          post.is_published 
+                            ? 'bg-teal-100 text-teal-800' 
                             : 'bg-yellow-100 text-yellow-800'
                         }`}>
-                          {post.status}
+                          {post.is_published ? 'Published' : 'Draft'}
                         </span>
                         <span className="text-xs text-gray-500">{post.read_time} min read</span>
                       </div>
@@ -1880,28 +1987,28 @@ const DashboardPage: React.FC = () => {
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4 text-xs text-gray-500">
-                          <span>{post.views_count} views</span>
-                          <span>{post.likes_count} likes</span>
+                          <span>{post.views} views</span>
+                          <span>0 likes</span>
                         </div>
                         <div className="flex space-x-2">
-                          <button 
-                            onClick={() => handleEditBlogPost(post)}
-                            className="text-xs text-amber-600 hover:text-amber-700 font-medium"
-                          >
+                                                <button 
+                        onClick={() => handleEditBlogPost(post)}
+                        className="text-xs text-primary hover:text-primary-dark font-medium"
+                      >
                             <Edit className="w-3 h-3 inline mr-1" />
                             Edit
                           </button>
-                          {post.status === 'draft' ? (
+                          {!post.is_published ? (
                             <button 
                               onClick={() => handlePublishBlogPost(post.id)}
-                              className="text-xs text-green-600 hover:text-green-700 font-medium"
+                              className="text-xs text-teal-600 hover:text-teal-700 font-medium"
                             >
                               Publish
                             </button>
                           ) : (
                             <button 
                               onClick={() => handleUnpublishBlogPost(post.id)}
-                              className="text-xs text-yellow-600 hover:text-yellow-700 font-medium"
+                              className="text-xs text-primary hover:text-primary-dark font-medium"
                             >
                               Unpublish
                             </button>
@@ -1939,170 +2046,51 @@ const DashboardPage: React.FC = () => {
   );
 
 
-  const renderShopContent = () => (
+    const renderShopContent = () => (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Your Products - Left Column */}
       <div className="lg:col-span-2">
         <div className="bg-white rounded-xl shadow-lg p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-bold text-gray-900 font-artistic italic">Your Products</h3>
-            <button className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
-              <Plus className="h-4 w-4" />
-              <span>Add Product</span>
-            </button>
-          </div>
-
-          {/* Products Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Product Card 1 */}
-            <div className="bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
-              <div className="h-48 bg-gray-200 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-2">
-                    <Image className="h-8 w-8 text-gray-500" />
-                  </div>
-                  <p className="text-sm text-gray-500">Product Image</p>
+          <div className="text-center py-12">
+            <div className="text-teal-600 text-6xl mb-6">🛍️</div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">Shop Coming Soon!</h3>
+            <p className="text-gray-600 mb-6 max-w-md mx-auto">
+              We're working hard to bring you an amazing shopping experience. 
+              Soon you'll be able to create and manage your own online store with 
+              beautiful products and seamless transactions.
+            </p>
+            <div className="bg-gradient-to-r from-teal-50 to-blue-50 border border-teal-200 rounded-lg p-6">
+              <h4 className="font-semibold text-teal-800 mb-3">What's Coming:</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-teal-700">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
+                  <span>Product Management</span>
                 </div>
-              </div>
-              <div className="p-4">
-                <h4 className="font-semibold text-gray-900 mb-2">M-TAJI Eco T-Shirt</h4>
-                <p className="text-lg font-bold text-gray-900 mb-2">KSh 1,500</p>
-                <p className="text-sm text-green-600 mb-4">45 sold this month</p>
-                <div className="flex space-x-2">
-                  <button className="flex-1 px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm">
-                    Edit
-                  </button>
-                  <button className="flex-1 px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm">
-                    View
-                  </button>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
+                  <span>Image Uploads</span>
                 </div>
-              </div>
-            </div>
-
-            {/* Product Card 2 */}
-            <div className="bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
-              <div className="h-48 bg-gray-200 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-2">
-                    <Image className="h-8 w-8 text-gray-500" />
-                  </div>
-                  <p className="text-sm text-gray-500">Product Image</p>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
+                  <span>Inventory Tracking</span>
                 </div>
-              </div>
-              <div className="p-4">
-                <h4 className="font-semibold text-gray-900 mb-2">Sustainability Mug</h4>
-                <p className="text-lg font-bold text-gray-900 mb-2">KSh 800</p>
-                <p className="text-sm text-green-600 mb-4">32 sold this month</p>
-                <div className="flex space-x-2">
-                  <button className="flex-1 px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm">
-                    Edit
-                  </button>
-                  <button className="flex-1 px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm">
-                    View
-                  </button>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
+                  <span>Secure Payments</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
+                  <span>Order Management</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
+                  <span>Analytics Dashboard</span>
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Add Product Form */}
-          <div className="mt-8 p-6 bg-gray-50 rounded-lg">
-            <h4 className="font-semibold text-gray-900 mb-4">Add New Product</h4>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Product Name</label>
-                  <input 
-                    type="text" 
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                    placeholder="Enter product name"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Price (KSh)</label>
-                  <input 
-                    type="number" 
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                    placeholder="0"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                <textarea 
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                  rows={3}
-                  placeholder="Describe your product"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Product Images</label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                  <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600">Click to upload product images</p>
-                </div>
-              </div>
-              <button className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors">
-                Add Product
+            <div className="mt-6">
+              <button className="bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
+                Get Notified When Available
               </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Right Column - Sales Summary & Quick Actions */}
-      <div className="space-y-6">
-        {/* Sales Summary */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">Sales Summary</h3>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Total Revenue</span>
-              <span className="text-xl font-bold text-gray-900">KSh 42,500</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Items Sold</span>
-              <span className="text-xl font-bold text-gray-900">77 Items Sold</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Average Rating</span>
-              <span className="text-xl font-bold text-gray-900">4.8★ Average Rating</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h3>
-          <div className="space-y-3">
-            <button className="w-full flex items-center space-x-3 bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg transition-colors">
-              <Plus className="h-5 w-5" />
-              <span>Add Product</span>
-            </button>
-            <button className="w-full flex items-center space-x-3 border border-gray-300 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors">
-              <TrendingUp className="h-5 w-5" />
-              <span>View Analytics</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Recent Orders */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">Recent Orders</h3>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div>
-                <p className="font-medium text-gray-900">Eco T-Shirt</p>
-                <p className="text-sm text-gray-500">Order #1234</p>
-              </div>
-              <span className="text-green-600 font-medium">KSh 1,500</span>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div>
-                <p className="font-medium text-gray-900">Sustainability Mug</p>
-                <p className="text-sm text-gray-500">Order #1235</p>
-              </div>
-              <span className="text-green-600 font-medium">KSh 800</span>
             </div>
           </div>
         </div>
@@ -2163,7 +2151,7 @@ const DashboardPage: React.FC = () => {
 
             {/* Key Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              {metrics.map((metric) => (
+              {realMetrics.map((metric) => (
                 <div key={metric.name} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
                   <div className="flex items-center justify-between">
                     <div>
@@ -2200,7 +2188,18 @@ const DashboardPage: React.FC = () => {
         </div>
 
         {/* Main Content */}
-        {renderContent()}
+        <div className="relative">
+          {loading && activeTab === 'profile' ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading dashboard...</p>
+              </div>
+            </div>
+          ) : (
+            renderContent()
+          )}
+        </div>
       </div>
     </div>
   );

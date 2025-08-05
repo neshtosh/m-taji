@@ -49,7 +49,7 @@ const CompletedProjects: React.FC = () => {
           <div key={project.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
             <div className="flex items-start justify-between mb-3">
               <h3 className="font-semibold text-gray-900 text-sm">{project.name}</h3>
-              <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">
+                              <span className="bg-teal-100 text-teal-800 text-xs font-medium px-2 py-1 rounded-full">
                 ✅ Completed
               </span>
             </div>
@@ -61,7 +61,7 @@ const CompletedProjects: React.FC = () => {
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-gray-600">Raised:</span>
-                <span className="font-medium text-green-600">{project.actualFunds}</span>
+                <span className="font-medium text-teal-600">{project.actualFunds}</span>
               </div>
             </div>
             

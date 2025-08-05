@@ -70,7 +70,7 @@ const FeaturedCampaigns = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: index * 0.1 }}
               viewport={{ once: true }}
-              className="bg-white dark:bg-gray-700 rounded-2xl shadow-lg overflow-hidden card-hover group cursor-pointer"
+              className="bg-black rounded-2xl shadow-lg overflow-hidden card-hover group cursor-pointer"
               onClick={() => navigate(`/campaign/${campaign.id}`)}
             >
               <div className="relative overflow-hidden">
@@ -80,12 +80,12 @@ const FeaturedCampaigns = () => {
                   className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
                 />
                 <div className="absolute top-4 left-4">
-                  <span className="bg-primary text-black px-3 py-1 rounded-full text-sm font-medium">
+                  <span className="bg-teal-600 text-white px-3 py-1 rounded-full text-sm font-medium">
                     {campaign.category}
                   </span>
                 </div>
                 <div className="absolute top-4 right-4">
-                  <span className="bg-white bg-opacity-90 text-text-dark px-3 py-1 rounded-full text-sm font-medium">
+                  <span className="bg-white bg-opacity-90 text-black px-3 py-1 rounded-full text-sm font-medium">
                     {campaign.daysLeft} days left
                   </span>
                 </div>
@@ -93,7 +93,7 @@ const FeaturedCampaigns = () => {
 
               <div className="p-6">
                 <h3 
-                  className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-primary transition-colors cursor-pointer"
+                  className="text-xl font-bold text-white mb-2 group-hover:text-teal-400 transition-colors cursor-pointer"
                   onClick={(e) => {
                     e.stopPropagation();
                     navigate(`/campaign/${campaign.id}`);
@@ -101,19 +101,19 @@ const FeaturedCampaigns = () => {
                 >
                   {campaign.title}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
+                <p className="text-gray-300 mb-4 line-clamp-2">
                   {campaign.description}
                 </p>
 
-                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-4">
+                <div className="flex items-center text-sm text-gray-400 mb-4">
                   <MapPin className="h-4 w-4 mr-1" />
                   {campaign.location}
                 </div>
 
                 <div className="mb-4">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Progress</span>
-                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                    <span className="text-sm text-gray-400">Progress</span>
+                    <span className="text-sm font-semibold text-white">
                       {campaign.progress}%
                     </span>
                   </div>
@@ -123,14 +123,14 @@ const FeaturedCampaigns = () => {
                       whileInView={{ width: `${campaign.progress}%` }}
                       transition={{ duration: 1, delay: 0.5 }}
                       viewport={{ once: true }}
-                      className="bg-primary h-2 rounded-full progress-bar"
+                      className="bg-teal-600 h-2 rounded-full progress-bar"
                     />
                   </div>
                   <div className="flex justify-between items-center mt-2">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                    <span className="text-sm text-gray-400">
                       ${campaign.raised.toLocaleString()} raised
                     </span>
-                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                    <span className="text-sm font-semibold text-white">
                       ${campaign.goal.toLocaleString()} goal
                     </span>
                   </div>
@@ -141,7 +141,7 @@ const FeaturedCampaigns = () => {
                     e.stopPropagation();
                     navigate(`/campaign/${campaign.id}`);
                   }}
-                  className="w-full bg-primary hover:bg-primary-dark text-black font-semibold py-3 px-6 rounded-full transition-all duration-300 flex items-center justify-center space-x-2 group transform hover:scale-105"
+                  className="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 px-6 rounded-full transition-all duration-300 flex items-center justify-center space-x-2 group transform hover:scale-105"
                 >
                   <span>Support This Cause</span>
                   <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />

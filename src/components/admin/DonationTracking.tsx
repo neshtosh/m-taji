@@ -161,16 +161,16 @@ const DonationTracking = () => {
   };
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'bg-green-100 text-green-800';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'failed':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
+          switch (status) {
+        case 'completed':
+          return 'bg-teal-100 text-teal-800';
+        case 'pending':
+          return 'bg-yellow-100 text-yellow-800';
+        case 'failed':
+          return 'bg-red-100 text-red-800';
+        default:
+          return 'bg-gray-100 text-gray-800';
+      }
   };
 
   const getMethodColor = (method: string) => {
@@ -180,7 +180,7 @@ const DonationTracking = () => {
       case 'paypal':
         return 'bg-indigo-100 text-indigo-800';
       case 'mpesa':
-        return 'bg-green-100 text-green-800';
+        return 'bg-teal-100 text-teal-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -284,7 +284,7 @@ const DonationTracking = () => {
               <p className="text-sm text-gray-600">Available Funds</p>
               <p className="text-2xl font-bold text-text-dark">${(totalRaised - totalSpent).toLocaleString()}</p>
             </div>
-            <DollarSign className="h-8 w-8 text-green-500" />
+                            <DollarSign className="h-8 w-8 text-teal-500" />
           </div>
         </motion.div>
       </div>

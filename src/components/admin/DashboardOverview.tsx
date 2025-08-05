@@ -19,8 +19,8 @@ const DashboardOverview = () => {
       change: '+12.5%',
       changeType: 'increase',
       icon: DollarSign,
-      color: 'text-green-600',
-      bgColor: 'bg-green-100',
+          color: 'text-teal-600',
+    bgColor: 'bg-teal-100',
     },
     {
       title: 'Active Campaigns',
@@ -128,7 +128,7 @@ const DashboardOverview = () => {
                 <stat.icon className={`h-6 w-6 ${stat.color}`} />
               </div>
               <div className={`flex items-center space-x-1 text-sm ${
-                stat.changeType === 'increase' ? 'text-green-600' : 'text-red-600'
+                stat.changeType === 'increase' ? 'text-teal-600' : 'text-red-600'
               }`}>
                 {stat.changeType === 'increase' ? (
                   <ArrowUp className="h-4 w-4" />
@@ -164,7 +164,7 @@ const DashboardOverview = () => {
                   <p className="text-xs text-gray-500">{donation.time}</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-green-600">{donation.amount}</p>
+                  <p className="font-bold text-teal-600">{donation.amount}</p>
                 </div>
               </div>
             ))}
@@ -218,8 +218,8 @@ const DashboardOverview = () => {
             <h3 className="font-semibold text-gray-900">Create Campaign</h3>
             <p className="text-sm text-gray-600">Start a new fundraising campaign</p>
           </button>
-          <button className="p-4 text-left bg-green-50 hover:bg-green-100 rounded-lg transition-colors">
-            <Users className="h-6 w-6 text-green-600 mb-2" />
+                          <button className="p-4 text-left bg-teal-50 hover:bg-teal-100 rounded-lg transition-colors">
+                  <Users className="h-6 w-6 text-teal-600 mb-2" />
             <h3 className="font-semibold text-gray-900">Add Content</h3>
             <p className="text-sm text-gray-600">Upload stories and media</p>
           </button>

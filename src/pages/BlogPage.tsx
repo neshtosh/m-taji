@@ -121,7 +121,7 @@ const BlogPage: React.FC = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100">
+            <div className="min-h-screen bg-gradient-to-br from-primary/10 to-orange-100">
       {/* Hero Section */}
       <div className="bg-white">
         <div className="container mx-auto px-4 py-16">
@@ -197,7 +197,7 @@ const BlogPage: React.FC = () => {
                 </div>
                 <div className="p-6">
                   <div className="flex items-center space-x-2 mb-3">
-                    <span className="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-medium rounded-full">
+                    <span className="px-3 py-1 bg-primary/20 text-primary-dark text-xs font-medium rounded-full">
                       {post.category}
                     </span>
                     <span className="text-gray-500 text-sm">{post.readTime}</span>
@@ -213,7 +213,7 @@ const BlogPage: React.FC = () => {
                   
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full flex items-center justify-center">
+                      <div className="w-8 h-8 bg-gradient-to-r from-primary to-primary-dark rounded-full flex items-center justify-center">
                         <span className="text-white font-semibold text-sm">
                           {post.author.charAt(0)}
                         </span>

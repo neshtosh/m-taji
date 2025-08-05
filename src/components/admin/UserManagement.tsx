@@ -68,7 +68,7 @@ const UserManagement = () => {
       case 'volunteer':
         return 'bg-blue-100 text-blue-800';
       case 'donor':
-        return 'bg-green-100 text-green-800';
+        return 'bg-teal-100 text-teal-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -77,7 +77,7 @@ const UserManagement = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-100 text-green-800';
+        return 'bg-teal-100 text-teal-800';
       case 'inactive':
         return 'bg-yellow-100 text-yellow-800';
       case 'suspended':
@@ -99,7 +99,7 @@ const UserManagement = () => {
             <Filter className="h-4 w-4" />
             <span>Filter</span>
           </button>
-          <button className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center space-x-2">
+                          <button className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center space-x-2">
             <UserPlus className="h-5 w-5" />
             <span>Add User</span>
           </button>
@@ -110,7 +110,7 @@ const UserManagement = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {[
           { label: 'Total Users', value: '1,245', icon: Users, color: 'text-blue-600', bgColor: 'bg-blue-100' },
-          { label: 'Active Donors', value: '892', icon: Users, color: 'text-green-600', bgColor: 'bg-green-100' },
+          { label: 'Active Donors', value: '892', icon: Users, color: 'text-teal-600', bgColor: 'bg-teal-100' },
           { label: 'Volunteers', value: '156', icon: Users, color: 'text-purple-600', bgColor: 'bg-purple-100' },
           { label: 'Admin Users', value: '8', icon: Users, color: 'text-red-600', bgColor: 'bg-red-100' },
         ].map((stat, index) => (
