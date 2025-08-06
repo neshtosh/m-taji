@@ -20,6 +20,11 @@ export default {
           light: '#1F2937',
           dark: '#111827',
         },
+        red: {
+          DEFAULT: '#DC2626', // Red
+          light: '#EF4444',
+          dark: '#B91C1C',
+        },
         text: {
           dark: '#000000',
           light: '#FFFFFF',

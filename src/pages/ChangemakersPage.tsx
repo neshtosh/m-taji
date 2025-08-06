@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Heart, Share2, Users, Target, TrendingUp, Lightbulb, Search, X } from 'lucide-react';
-import { fetchAllPublicUsers, searchUsers, fetchUserStats, PublicUserProfile } from '../lib/userSearch';
+import { fetchAllPublicUsers, searchUsers, fetchUserStats, PublicUserProfile, testDatabaseConnection } from '../lib/userSearch';
 
 const ChangemakersPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(0);
@@ -12,12 +12,25 @@ const ChangemakersPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Handle URL search parameters
+  useEffect(() => {
+    const urlSearchQuery = searchParams.get('search');
+    if (urlSearchQuery) {
+      setSearchQuery(urlSearchQuery);
+    }
+  }, [searchParams]);
 
   // Fetch all changemakers on component mount
   useEffect(() => {
     const fetchChangemakers = async () => {
       try {
         setLoading(true);
+        
+        // Test database connection first
+        await testDatabaseConnection();
+        
         const users = await fetchAllPublicUsers();
         setChangemakers(users);
         setFilteredChangemakers(users);
@@ -175,7 +188,7 @@ const ChangemakersPage: React.FC = () => {
              <p className="text-xl text-gray-600 dark:text-gray-400">Transforming communities through youth innovation</p>
            </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                          {impactMetrics.map((metric, index) => (
                <motion.div
                  key={index}
@@ -258,7 +271,7 @@ const ChangemakersPage: React.FC = () => {
               )}
             </motion.div>
 
-                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
+                     <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-8">
              {currentChangemakers.length > 0 ? (
                currentChangemakers.map((changemaker, index) => (
                                    <motion.div

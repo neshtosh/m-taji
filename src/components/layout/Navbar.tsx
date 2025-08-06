@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Menu, X, User, UserPlus, ChevronDown, Sun, Moon } from 'lucide-react';
+import { Menu, X, User, UserPlus, ChevronDown, Sun, Moon, Search } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import Logo from '../ui/Logo';
@@ -12,7 +12,10 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showDonationModal, setShowDonationModal] = useState(false);
+  const [showSearchModal, setShowSearchModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const location = useLocation();
+  const navigate = useNavigate();
   const { isAuthenticated, user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
@@ -28,7 +31,6 @@ const Navbar = () => {
   const navItems = [
     { name: 'Home', path: '/' },
     { name: 'Youth Leaders', path: '/changemakers' },
-    { name: 'Stories', path: '/stories' },
     { name: 'About', path: '/about' },
     { name: 'Contact', path: '/contact' },
   ];
@@ -40,6 +42,15 @@ const Navbar = () => {
   const handleLogout = () => {
     logout();
     setShowUserMenu(false);
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/changemakers?search=${encodeURIComponent(searchQuery.trim())}`);
+      setShowSearchModal(false);
+      setSearchQuery('');
+    }
   };
 
   return (
@@ -82,6 +93,15 @@ const Navbar = () => {
                 {item.name}
               </Link>
             ))}
+            
+            {/* Search Button */}
+            <button
+              onClick={() => setShowSearchModal(true)}
+              className="p-2 text-gray-700 dark:text-gray-300 hover:text-primary transition-colors"
+              title="Search changemakers"
+            >
+              <Search className="h-5 w-5" />
+            </button>
             
             {/* Theme Toggle */}
             <button
@@ -180,7 +200,8 @@ const Navbar = () => {
           <div className="md:hidden relative z-10 pointer-events-auto">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2 rounded-md text-gray-900 dark:text-white"
+              className="p-2 rounded-md text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              aria-label="Toggle mobile menu"
             >
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -191,9 +212,9 @@ const Navbar = () => {
         <motion.div
           initial={false}
           animate={{ height: isOpen ? 'auto' : 0 }}
-          className="md:hidden overflow-hidden bg-white dark:bg-black shadow-lg rounded-b-lg relative z-40 pointer-events-auto"
+          className="md:hidden overflow-hidden bg-white dark:bg-black shadow-lg rounded-b-lg relative z-40 pointer-events-auto border-t border-gray-200 dark:border-gray-700"
         >
-          <div className="px-2 pt-2 pb-3 space-y-1">
+          <div className="px-4 pt-4 pb-6 space-y-2">
             {/* Mobile Theme Toggle */}
             <button
               onClick={toggleTheme}
@@ -309,6 +330,55 @@ const Navbar = () => {
         isOpen={showDonationModal} 
         onClose={() => setShowDonationModal(false)} 
       />
+
+      {/* Search Modal */}
+      {showSearchModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-4 sm:p-6 mx-4"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Search Changemakers</h3>
+              <button
+                onClick={() => setShowSearchModal(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <form onSubmit={handleSearch} className="space-y-4">
+              <div>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by name, location, or interests..."
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  autoFocus
+                />
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  type="submit"
+                  className="flex-1 bg-primary hover:bg-primary-dark text-black font-semibold py-3 px-4 rounded-lg transition-colors"
+                >
+                  Search
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowSearchModal(false)}
+                  className="flex-1 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-300 font-semibold py-3 px-4 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
     </motion.nav>
   );
 };

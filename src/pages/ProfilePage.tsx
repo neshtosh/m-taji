@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, MapPin, Users, Target, TrendingUp, Heart, Share2, Mail, Phone, FileText, MessageSquare, ShoppingBag, Calendar, Eye, Edit, Trash2, Plus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { fetchUserBlogPosts, fetchUserMicroblogPosts, fetchUserProducts } from '../lib/userProjects';
+import { fetchPublicUserProfile, fetchUserStats } from '../lib/userSearch';
 
 interface UserContent {
   blogs: any[];
@@ -16,11 +17,14 @@ const ProfilePage: React.FC = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'about' | 'blogs' | 'microblogs' | 'shop'>('about');
   const [userContent, setUserContent] = useState<UserContent>({ blogs: [], microblogs: [], products: [] });
+  const [profileUser, setProfileUser] = useState<any>(null);
+  const [userStats, setUserStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isOwnProfile, setIsOwnProfile] = useState(false);
 
   useEffect(() => {
-    const fetchUserContent = async () => {
+    const fetchUserData = async () => {
       if (!id) {
         setError('No user ID provided');
         setLoading(false);
@@ -29,6 +33,24 @@ const ProfilePage: React.FC = () => {
 
       try {
         setLoading(true);
+        
+        // Check if this is the current user's profile
+        setIsOwnProfile(user?.id === id);
+
+        // Fetch user profile data
+        const profileData = await fetchPublicUserProfile(id);
+        if (!profileData) {
+          setError('User not found');
+          setLoading(false);
+          return;
+        }
+        setProfileUser(profileData);
+
+        // Fetch user stats
+        const stats = await fetchUserStats(id);
+        setUserStats(stats);
+
+        // Fetch user content
         const [blogs, microblogs, products] = await Promise.all([
           fetchUserBlogPosts(id),
           fetchUserMicroblogPosts(id),
@@ -41,23 +63,23 @@ const ProfilePage: React.FC = () => {
           products: products || []
         });
       } catch (err) {
-        console.error('Error fetching user content:', err);
-        setError('Failed to load user content');
+        console.error('Error fetching user data:', err);
+        setError('Failed to load user profile');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUserContent();
-  }, [id]);
+    fetchUserData();
+  }, [id, user?.id]);
 
   const handleShare = () => {
-    const shareText = `Check out this amazing changemaker's profile!`;
-    const shareUrl = window.location.href;
+    const shareText = `Check out ${profileUser.name}'s amazing changemaker profile!`;
+    const shareUrl = `${window.location.origin}/profile/${id}`;
     
     if (navigator.share) {
       navigator.share({
-        title: 'Youth Changemaker Profile',
+        title: `${profileUser.name} - Youth Changemaker Profile`,
         text: shareText,
         url: shareUrl
       });
@@ -103,6 +125,26 @@ const ProfilePage: React.FC = () => {
     );
   }
 
+  // If profileUser is null, it means the user was not found or there was an error
+  if (!profileUser) {
+    return (
+      <div className="min-h-screen bg-gray-50 pt-16 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-600 text-xl mb-4">⚠️</div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Profile Not Found</h2>
+          <p className="text-gray-600 mb-4">The user you are looking for does not exist.</p>
+          <Link 
+            to="/changemakers"
+            className="inline-flex items-center text-primary hover:text-primary-dark font-medium"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Changemakers
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   const tabs = [
     { id: 'about', name: 'About', icon: Users },
     { id: 'blogs', name: 'Blogs', icon: FileText, count: userContent.blogs.length },
@@ -121,7 +163,7 @@ const ProfilePage: React.FC = () => {
       >
         <h2 className="text-xl font-bold text-gray-900 mb-4">About</h2>
         <p className="text-gray-700 leading-relaxed mb-4">
-          Passionate youth changemaker dedicated to creating positive impact in communities through innovative projects and sustainable solutions.
+          {profileUser.bio || 'This changemaker is making a difference in their community through innovative projects and sustainable solutions.'}
         </p>
         <div className="bg-teal-50 rounded-xl p-4 border border-teal-200">
           <h3 className="font-semibold text-teal-800 mb-2">Impact</h3>
@@ -140,17 +182,17 @@ const ProfilePage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="text-center p-4 bg-gray-50 rounded-xl">
             <Users className="w-8 h-8 text-teal-600 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-900">1,240</div>
+            <div className="text-2xl font-bold text-gray-900">0</div>
             <div className="text-gray-600 text-sm">Followers</div>
           </div>
           <div className="text-center p-4 bg-gray-50 rounded-xl">
             <Target className="w-8 h-8 text-teal-600 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-900">8</div>
+            <div className="text-2xl font-bold text-gray-900">{userStats?.projects || 0}</div>
             <div className="text-gray-600 text-sm">Projects</div>
           </div>
           <div className="text-center p-4 bg-gray-50 rounded-xl">
             <TrendingUp className="w-8 h-8 text-teal-600 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-900">KSh 450K</div>
+            <div className="text-2xl font-bold text-gray-900">KSh 0</div>
             <div className="text-gray-600 text-sm">Funds Raised</div>
           </div>
         </div>
@@ -352,19 +394,19 @@ const ProfilePage: React.FC = () => {
             >
               {/* Profile Image */}
               <div className="text-center mb-6">
-                <img
-                  src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=300&h=300&fit=crop&crop=face"
-                  alt="Changemaker Profile"
-                  className="w-32 h-32 rounded-full object-cover mx-auto mb-4 border-4 border-teal-200"
-                />
-                <h1 className="text-2xl font-bold text-gray-900 mb-1">Sarah Mwangi</h1>
-                <p className="text-gray-600 mb-2">24 years old</p>
+                <div className="w-32 h-32 rounded-full bg-gradient-to-r from-primary to-primary-dark flex items-center justify-center mx-auto mb-4 border-4 border-teal-200">
+                  <span className="text-white font-bold text-3xl">
+                    {profileUser.name?.charAt(0) || 'U'}
+                  </span>
+                </div>
+                <h1 className="text-2xl font-bold text-gray-900 mb-1">{profileUser.name}</h1>
+                <p className="text-gray-600 mb-2">Youth Changemaker</p>
                 <div className="flex items-center justify-center text-gray-600 mb-4">
                   <MapPin className="w-4 h-4 mr-1" />
-                  <span>Nairobi, Kenya</span>
+                  <span>{profileUser.location || 'Youth Changemaker'}</span>
                 </div>
                 <span className="inline-block bg-teal-100 text-teal-800 font-semibold px-4 py-2 rounded-full text-sm">
-                  Education & Youth Empowerment
+                  Youth Changemaker
                 </span>
               </div>
 
@@ -372,30 +414,59 @@ const ProfilePage: React.FC = () => {
               <div className="space-y-3 mb-6">
                 <div className="flex items-center text-gray-600">
                   <Mail className="w-4 h-4 mr-3" />
-                  <span className="text-sm">sarah.mwangi@example.com</span>
+                  <span className="text-sm">{profileUser.email}</span>
                 </div>
-                <div className="flex items-center text-gray-600">
-                  <Phone className="w-4 h-4 mr-3" />
-                  <span className="text-sm">+254 700 123 456</span>
-                </div>
+                {profileUser.website && (
+                  <div className="flex items-center text-gray-600">
+                    <Phone className="w-4 h-4 mr-3" />
+                    <span className="text-sm">{profileUser.website}</span>
+                  </div>
+                )}
+                {profileUser.location && (
+                  <div className="flex items-center text-gray-600">
+                    <MapPin className="w-4 h-4 mr-3" />
+                    <span className="text-sm">{profileUser.location}</span>
+                  </div>
+                )}
               </div>
 
               {/* Action Buttons */}
               <div className="space-y-3">
-                <button 
-                  onClick={handleFollow}
-                  className="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 px-4 rounded-xl transition-colors"
-                >
-                  <Heart className="w-4 h-4 mr-2 inline" />
-                  Follow Changemaker
-                </button>
-                <button 
-                  onClick={handleShare}
-                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl transition-colors"
-                >
-                  <Share2 className="w-4 h-4 mr-2 inline" />
-                  Share Profile
-                </button>
+                {isOwnProfile ? (
+                  <>
+                    <Link 
+                      to="/dashboard"
+                      className="w-full bg-primary hover:bg-primary-dark text-black font-semibold py-3 px-4 rounded-xl transition-colors flex items-center justify-center"
+                    >
+                      <Edit className="w-4 h-4 mr-2" />
+                      Edit My Profile
+                    </Link>
+                    <button 
+                      onClick={handleShare}
+                      className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl transition-colors"
+                    >
+                      <Share2 className="w-4 h-4 mr-2 inline" />
+                      Share My Profile
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button 
+                      onClick={handleFollow}
+                      className="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 px-4 rounded-xl transition-colors"
+                    >
+                      <Heart className="w-4 h-4 mr-2 inline" />
+                      Follow Changemaker
+                    </button>
+                    <button 
+                      onClick={handleShare}
+                      className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl transition-colors"
+                    >
+                      <Share2 className="w-4 h-4 mr-2 inline" />
+                      Share Profile
+                    </button>
+                  </>
+                )}
               </div>
             </motion.div>
           </div>

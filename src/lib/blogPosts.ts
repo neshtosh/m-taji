@@ -49,6 +49,31 @@ export const fetchUserBlogPosts = async (userId: string): Promise<BlogPost[]> =>
 // Fetch all published blog posts (for public viewing)
 export const fetchPublishedBlogPosts = async (): Promise<BlogPostWithAuthor[]> => {
   try {
+    console.log('Fetching published blog posts...');
+    
+    // First, let's check all blog posts to see what's in the database
+    const { data: allPosts, error: allError } = await supabase
+      .from('blog_posts')
+      .select('*');
+    
+    console.log('All blog posts in database:', allPosts);
+    console.log('All posts error:', allError);
+    
+    // Log details of each blog post
+    if (allPosts && allPosts.length > 0) {
+      allPosts.forEach((post, index) => {
+        console.log(`Blog post ${index + 1}:`, {
+          id: post.id,
+          title: post.title,
+          is_published: post.is_published,
+          published_at: post.published_at,
+          created_at: post.created_at,
+          author_id: post.author_id
+        });
+      });
+    }
+    
+    // Now fetch only published posts
     const { data, error } = await supabase
       .from('blog_posts')
       .select(`
@@ -56,7 +81,10 @@ export const fetchPublishedBlogPosts = async (): Promise<BlogPostWithAuthor[]> =
         author:profiles(name, email)
       `)
       .eq('is_published', true)
-      .order('published_at', { ascending: false });
+      .order('created_at', { ascending: false });
+
+    console.log('Published blog posts:', data);
+    console.log('Published posts error:', error);
 
     if (error) {
       console.error('Error fetching published blog posts:', error);

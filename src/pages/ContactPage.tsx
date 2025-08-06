@@ -89,23 +89,34 @@ const ContactPage = () => {
       {/* Contact Info Cards */}
       <section className="py-16 bg-gray-50 dark:bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {contactInfo.map((info, index) => (
-              <motion.div
-                key={info.title}
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: index * 0.1 }}
-                className="bg-white dark:bg-gray-700 p-8 rounded-2xl shadow-lg text-center hover:shadow-xl transition-shadow duration-300"
-              >
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-light/10 rounded-full mb-6">
-                  <info.icon className="h-8 w-8 text-primary" />
-                </div>
-                <h3 className="text-xl font-bold text-text-dark mb-2">{info.title}</h3>
-                <p className="text-lg font-semibold text-gray-800 mb-2">{info.details}</p>
-                <p className="text-gray-600">{info.description}</p>
-              </motion.div>
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+            {contactInfo.map((info, index) => {
+              // Define colors for each contact method
+              const colors = [
+                { icon: 'text-primary', bg: 'bg-primary-light/10' }, // Mustard for Email
+                { icon: 'text-secondary', bg: 'bg-secondary-light/10' }, // Teal for Phone
+                { icon: 'text-red', bg: 'bg-red-light/10' }, // Red for Location
+              ];
+              
+              const colorScheme = colors[index];
+              
+              return (
+                <motion.div
+                  key={info.title}
+                  initial={{ opacity: 0, y: 50 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: index * 0.1 }}
+                  className="bg-white dark:bg-gray-700 p-6 sm:p-8 rounded-2xl shadow-lg text-center hover:shadow-xl transition-shadow duration-300"
+                >
+                  <div className={`inline-flex items-center justify-center w-16 h-16 ${colorScheme.bg} rounded-full mb-6`}>
+                    <info.icon className={`h-8 w-8 ${colorScheme.icon}`} />
+                  </div>
+                  <h3 className="text-xl font-bold text-text-dark mb-2">{info.title}</h3>
+                  <p className="text-lg font-semibold text-gray-800 mb-2">{info.details}</p>
+                  <p className="text-gray-600">{info.description}</p>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -125,7 +136,7 @@ const ContactPage = () => {
                 Send Us a Message
               </h2>
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-text-dark mb-2">
                       Full Name

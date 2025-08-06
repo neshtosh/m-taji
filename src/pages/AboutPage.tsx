@@ -143,22 +143,34 @@ const AboutPage = () => {
           </motion.div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-            {values.map((value, index) => (
-              <motion.div
-                key={value.title}
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="text-center p-6 sm:p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300"
-              >
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-light/10 rounded-full mb-6">
-                  <value.icon className="h-8 w-8 text-primary" />
-                </div>
-                <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white font-bold-rounded mb-3 sm:mb-4">{value.title}</h3>
-                <p className="text-sm sm:text-base text-gray-600">{value.description}</p>
-              </motion.div>
-            ))}
+            {values.map((value, index) => {
+              // Define colors for each icon
+              const colors = [
+                { icon: 'text-primary', bg: 'bg-primary-light/10' }, // Mustard for Heart
+                { icon: 'text-secondary', bg: 'bg-secondary-light/10' }, // Teal for Users
+                { icon: 'text-red', bg: 'bg-red-light/10' }, // Red for Globe
+                { icon: 'text-primary', bg: 'bg-primary-light/10' }, // Mustard for Award
+              ];
+              
+              const colorScheme = colors[index];
+              
+              return (
+                <motion.div
+                  key={value.title}
+                  initial={{ opacity: 0, y: 50 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  className="text-center p-6 sm:p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300"
+                >
+                  <div className={`inline-flex items-center justify-center w-16 h-16 ${colorScheme.bg} rounded-full mb-6`}>
+                    <value.icon className={`h-8 w-8 ${colorScheme.icon}`} />
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white font-bold-rounded mb-3 sm:mb-4">{value.title}</h3>
+                  <p className="text-sm sm:text-base text-gray-600">{value.description}</p>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>

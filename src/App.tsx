@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from './components/layout/Navbar';
 import HomePage from './pages/HomePage';
 import ChangemakersPage from './pages/ChangemakersPage';
-import StoriesPage from './pages/StoriesPage';
+
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -85,7 +85,7 @@ function App() {
                 <>
                   <Navbar />
                   <main>
-                    <StoriesPage />
+                    <BlogPage />
                   </main>
                   <Footer />
                   <FloatingDonateButton />
@@ -122,6 +122,16 @@ function App() {
                 </>
               } />
               <Route path="/blog" element={
+                <>
+                  <Navbar />
+                  <main>
+                    <BlogPage />
+                  </main>
+                  <Footer />
+                  <FloatingDonateButton />
+                </>
+              } />
+              <Route path="/blogs" element={
                 <>
                   <Navbar />
                   <main>

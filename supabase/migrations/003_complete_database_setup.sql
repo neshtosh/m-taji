@@ -41,6 +41,15 @@ BEGIN
             FOR SELECT USING (auth.uid() = id);
     END IF;
 
+    -- Allow public reading of all profiles (for search functionality)
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE tablename = 'profiles' AND policyname = 'Public can view all profiles'
+    ) THEN
+        CREATE POLICY "Public can view all profiles" ON public.profiles
+            FOR SELECT USING (true);
+    END IF;
+
     -- Users can update their own profile
     IF NOT EXISTS (
         SELECT 1 FROM pg_policies 

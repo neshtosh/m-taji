@@ -62,7 +62,7 @@ const FeaturedCampaigns = () => {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {campaigns.map((campaign, index) => (
             <motion.div
               key={campaign.id}
@@ -91,9 +91,9 @@ const FeaturedCampaigns = () => {
                 </div>
               </div>
 
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 <h3 
-                  className="text-xl font-bold text-white mb-2 group-hover:text-teal-400 transition-colors cursor-pointer"
+                  className="text-lg sm:text-xl font-bold text-white mb-2 group-hover:text-teal-400 transition-colors cursor-pointer"
                   onClick={(e) => {
                     e.stopPropagation();
                     navigate(`/campaign/${campaign.id}`);
@@ -141,7 +141,7 @@ const FeaturedCampaigns = () => {
                     e.stopPropagation();
                     navigate(`/campaign/${campaign.id}`);
                   }}
-                  className="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 px-6 rounded-full transition-all duration-300 flex items-center justify-center space-x-2 group transform hover:scale-105"
+                  className="w-full bg-primary hover:bg-primary-dark text-black font-semibold py-3 px-6 rounded-full transition-all duration-300 flex items-center justify-center space-x-2 group transform hover:scale-105"
                 >
                   <span>Support This Cause</span>
                   <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
@@ -158,7 +158,7 @@ const FeaturedCampaigns = () => {
           viewport={{ once: true }}
           className="text-center mt-12"
         >
-          <button className="btn-secondary">
+          <button className="bg-primary hover:bg-primary-dark text-black font-semibold py-3 px-6 rounded-full transition-all duration-300 transform hover:scale-105">
             View All Campaigns
           </button>
         </motion.div>
