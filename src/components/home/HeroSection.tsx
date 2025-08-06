@@ -2,20 +2,24 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Play, ArrowRight } from 'lucide-react';
 import DonationModal from '../ui/DonationModal';
+import ImageSlider from './ImageSlider';
 
 const HeroSection = () => {
   const [showModal, setShowModal] = useState(false);
 
+  // Add your local image paths here
+  const heroImages = [
+    '/images/hero1.jpeg', // Replace with your actual image path
+    '/images/hero2.jpeg', // Replace with your actual image path
+    // Fallback images (will be used if local images don't exist)
+    
+  ];
+
   return (
     <section className="relative h-screen flex items-center justify-center overflow-hidden">
-      {/* Video Background */}
+      {/* Image Slider Background */}
       <div className="absolute inset-0 z-0">
-        <div className="w-full h-full bg-secondary">
-          {/* Placeholder for video background */}
-          <div className="w-full h-full bg-cover bg-center bg-[url('https://images.pexels.com/photos/6646918/pexels-photo-6646918.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop')]">
-            <div className="w-full h-full video-overlay" />
-          </div>
-        </div>
+        <ImageSlider images={heroImages} autoPlayInterval={6000} />
       </div>
 
       {/* Floating Elements */}
