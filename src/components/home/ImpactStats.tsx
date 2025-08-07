@@ -53,32 +53,36 @@ const ImpactStats = () => {
       value: animatedValues.lives,
       label: 'Lives Transformed',
       suffix: '+',
-      color: 'text-primary',
-      bgColor: 'bg-primary/20',
+      color: 'text-amber-600',
+      bgColor: 'bg-amber-100',
+      iconColor: 'text-amber-600',
     },
     {
       icon: Heart,
       value: animatedValues.donations,
       label: 'Generous Donors',
       suffix: '+',
-      color: 'text-secondary',
-      bgColor: 'bg-secondary/20',
+      color: 'text-red-600',
+      bgColor: 'bg-red-100',
+      iconColor: 'text-red-600',
     },
     {
       icon: Globe,
       value: animatedValues.countries,
       label: 'Countries Reached',
       suffix: '+',
-      color: 'text-primary',
-      bgColor: 'bg-primary/20',
+      color: 'text-teal-600',
+      bgColor: 'bg-teal-100',
+      iconColor: 'text-teal-600',
     },
     {
       icon: Award,
       value: animatedValues.projects,
       label: 'Projects Completed',
       suffix: '+',
-      color: 'text-secondary',
-      bgColor: 'bg-secondary/20',
+      color: 'text-amber-600',
+      bgColor: 'bg-amber-100',
+      iconColor: 'text-amber-600',
     },
   ];
 
@@ -111,7 +115,7 @@ const ImpactStats = () => {
               className="text-center p-8 rounded-2xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-700 dark:to-gray-800 shadow-lg hover:shadow-xl transition-shadow duration-300"
             >
               <div className={`inline-flex items-center justify-center w-16 h-16 ${stat.bgColor} rounded-full mb-6`}>
-                <stat.icon className={`h-8 w-8 ${stat.color}`} />
+                <stat.icon className={`h-8 w-8 ${stat.iconColor}`} />
               </div>
               <div className={`text-4xl md:text-5xl font-bold ${stat.color} mb-2`}>
                 {stat.value.toLocaleString()}{stat.suffix}

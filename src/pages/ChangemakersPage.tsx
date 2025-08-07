@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Heart, Share2, Users, Target, TrendingUp, Lightbulb, Search, X } from 'lucide-react';
 import { fetchAllPublicUsers, searchUsers, fetchUserStats, PublicUserProfile, testDatabaseConnection } from '../lib/userSearch';
+import { toggleFollow, getUserFollowStats, ensureFollowersTable, getFollowersList, getFollowingList } from '../lib/followers';
+import { useAuth } from '../context/AuthContext';
 
 const ChangemakersPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(0);
@@ -11,8 +13,18 @@ const ChangemakersPage: React.FC = () => {
   const [filteredChangemakers, setFilteredChangemakers] = useState<PublicUserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [userStats, setUserStats] = useState<{[key: string]: any}>({});
+  const [followStats, setFollowStats] = useState<{[key: string]: any}>({});
+  const [showFollowersModal, setShowFollowersModal] = useState(false);
+  const [showFollowingModal, setShowFollowingModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [followersList, setFollowersList] = useState<any[]>([]);
+  const [followingList, setFollowingList] = useState<any[]>([]);
+  const [loadingFollowers, setLoadingFollowers] = useState(false);
+  const [loadingFollowing, setLoadingFollowing] = useState(false);
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { user } = useAuth();
 
   // Handle URL search parameters
   useEffect(() => {
@@ -22,7 +34,7 @@ const ChangemakersPage: React.FC = () => {
     }
   }, [searchParams]);
 
-  // Fetch all changemakers on component mount
+  // Fetch all changemakers and their stats on component mount
   useEffect(() => {
     const fetchChangemakers = async () => {
       try {
@@ -34,6 +46,29 @@ const ChangemakersPage: React.FC = () => {
         const users = await fetchAllPublicUsers();
         setChangemakers(users);
         setFilteredChangemakers(users);
+
+        // Fetch stats for each user
+        const statsPromises = users.map(async (user) => {
+          const stats = await fetchUserStats(user.id);
+          return { [user.id]: stats };
+        });
+
+        // Fetch follow stats for each user
+        const followStatsPromises = users.map(async (user) => {
+          const followStats = await getUserFollowStats(user.id, user?.id);
+          return { [user.id]: followStats };
+        });
+
+        const [statsResults, followStatsResults] = await Promise.all([
+          Promise.all(statsPromises),
+          Promise.all(followStatsPromises)
+        ]);
+        
+        const combinedStats = statsResults.reduce((acc, stat) => ({ ...acc, ...stat }), {});
+        const combinedFollowStats = followStatsResults.reduce((acc, stat) => ({ ...acc, ...stat }), {});
+        
+        setUserStats(combinedStats);
+        setFollowStats(combinedFollowStats);
       } catch (error) {
         console.error('Error fetching changemakers:', error);
       } finally {
@@ -138,6 +173,66 @@ const ChangemakersPage: React.FC = () => {
     }
   };
 
+  // Handle follow functionality
+  const handleFollow = async (changemakerId: string) => {
+    if (!user) {
+      alert('Please sign in to follow changemakers');
+      return;
+    }
+
+    try {
+      const result = await toggleFollow(user.id, changemakerId);
+      if (result.success) {
+        // Update the follow stats locally
+        setFollowStats(prev => ({
+          ...prev,
+          [changemakerId]: {
+            ...prev[changemakerId],
+            is_following: result.isFollowing,
+            followers_count: result.isFollowing 
+              ? (prev[changemakerId]?.followers_count || 0) + 1
+              : Math.max((prev[changemakerId]?.followers_count || 0) - 1, 0)
+          }
+        }));
+      } else {
+        alert('Failed to update follow status. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error following user:', error);
+      alert('Failed to update follow status. Please try again.');
+    }
+  };
+
+  const handleShowFollowers = async (changemaker: PublicUserProfile) => {
+    setSelectedUser(changemaker);
+    setLoadingFollowers(true);
+    setShowFollowersModal(true);
+    
+    try {
+      const followers = await getFollowersList(changemaker.id);
+      setFollowersList(followers);
+    } catch (error) {
+      console.error('Error fetching followers:', error);
+    } finally {
+      setLoadingFollowers(false);
+    }
+  };
+
+  const handleShowFollowing = async (changemaker: PublicUserProfile) => {
+    setSelectedUser(changemaker);
+    setLoadingFollowing(true);
+    setShowFollowingModal(true);
+    
+    try {
+      const following = await getFollowingList(changemaker.id);
+      setFollowingList(following);
+    } catch (error) {
+      console.error('Error fetching following:', error);
+    } finally {
+      setLoadingFollowing(false);
+    }
+  };
+
   // Handle explore changemakers
   const handleExploreChangemakers = () => {
     // Scroll to the featured changemakers section
@@ -184,7 +279,7 @@ const ChangemakersPage: React.FC = () => {
              transition={{ duration: 0.6, delay: 0.2 }}
              className="text-center mb-12"
            >
-             <h2 className="text-4xl font-bold text-gray-900 dark:text-white font-bold-rounded mb-4">Our Impact</h2>
+             <h1 className="text-4xl md:text-6xl font-bold font-bold-rounded mb-6 text-primary">Our Impact</h1>
              <p className="text-xl text-gray-600 dark:text-gray-400">Transforming communities through youth innovation</p>
            </motion.div>
 
@@ -254,6 +349,8 @@ const ChangemakersPage: React.FC = () => {
                 </div>
               </div>
               
+
+              
               {/* Search Results Indicator */}
               {searchQuery && (
                 <motion.div
@@ -312,9 +409,14 @@ const ChangemakersPage: React.FC = () => {
                   </div>
 
                   <div className="flex justify-between items-center mb-4 text-sm text-gray-600">
-                    <span>0 followers</span>
-                    <span>0 projects</span>
-                    <span>KSh 0</span>
+                    <button 
+                      onClick={() => handleShowFollowers(changemaker)}
+                      className="hover:text-teal-600 transition-colors cursor-pointer"
+                    >
+                      {followStats[changemaker.id]?.followers_count || 0} followers
+                    </button>
+                    <span>{userStats[changemaker.id]?.projects || 0} projects</span>
+                    <span>{userStats[changemaker.id]?.blogs || 0} blogs</span>
                   </div>
 
                                      <div className="flex items-center justify-between">
@@ -325,6 +427,18 @@ const ChangemakersPage: React.FC = () => {
                        View Profile
                      </button>
                     <div className="flex space-x-2">
+                      {user && user.id !== changemaker.id && (
+                        <button 
+                          onClick={() => handleFollow(changemaker.id)}
+                          className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                            followStats[changemaker.id]?.is_following
+                              ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                              : 'bg-teal-600 text-white hover:bg-teal-700'
+                          }`}
+                        >
+                          {followStats[changemaker.id]?.is_following ? 'Following' : 'Follow'}
+                        </button>
+                      )}
                       <button 
                         onClick={() => toggleFavorite(changemaker.id)}
                         className={`p-2 transition-colors ${
@@ -413,6 +527,132 @@ const ChangemakersPage: React.FC = () => {
             )}
                  </div>
         </motion.section>
+
+        {/* Followers Modal */}
+        {showFollowersModal && selectedUser && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 max-h-[80vh] overflow-hidden"
+            >
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold text-gray-900">
+                    {selectedUser.name}'s Followers
+                  </h3>
+                  <button
+                    onClick={() => setShowFollowersModal(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="p-6 max-h-[60vh] overflow-y-auto">
+                {loadingFollowers ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading followers...</p>
+                  </div>
+                ) : followersList.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Followers Yet</h3>
+                    <p className="text-gray-600">This changemaker doesn't have any followers yet.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {followersList.map((follower) => (
+                      <div key={follower.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                        <div className="w-10 h-10 bg-teal-600 rounded-full flex items-center justify-center">
+                          <span className="text-white font-semibold">
+                            {follower.name?.charAt(0) || 'U'}
+                          </span>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-gray-900">{follower.name}</h4>
+                          <p className="text-sm text-gray-600">{follower.email}</p>
+                        </div>
+                        <Link
+                          to={`/profile/${follower.id}`}
+                          className="text-teal-600 hover:text-teal-700 text-sm font-medium"
+                        >
+                          View Profile
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Following Modal */}
+        {showFollowingModal && selectedUser && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 max-h-[80vh] overflow-hidden"
+            >
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold text-gray-900">
+                    {selectedUser.name}'s Following
+                  </h3>
+                  <button
+                    onClick={() => setShowFollowingModal(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="p-6 max-h-[60vh] overflow-y-auto">
+                {loadingFollowing ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading following...</p>
+                  </div>
+                ) : followingList.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Not Following Anyone</h3>
+                    <p className="text-gray-600">This changemaker isn't following anyone yet.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {followingList.map((following) => (
+                      <div key={following.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                        <div className="w-10 h-10 bg-teal-600 rounded-full flex items-center justify-center">
+                          <span className="text-white font-semibold">
+                            {following.name?.charAt(0) || 'U'}
+                          </span>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-gray-900">{following.name}</h4>
+                          <p className="text-sm text-gray-600">{following.email}</p>
+                        </div>
+                        <Link
+                          to={`/profile/${following.id}`}
+                          className="text-teal-600 hover:text-teal-700 text-sm font-medium"
+                        >
+                          View Profile
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
      </motion.div>
    );
  };

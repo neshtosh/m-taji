@@ -1,525 +1,659 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   User, 
-  Shield, 
+  Camera, 
+  Lock, 
   Bell, 
-  Globe, 
-  Palette, 
-  Download, 
+  Shield, 
   Trash2, 
-  Eye, 
-  EyeOff,
-  Mail,
-  Phone,
-  MapPin,
-  Lock,
-  Key,
-  Smartphone,
-  Monitor,
-  Moon,
-  Sun,
-  Volume2,
-  VolumeX
+  Save,
+  X,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
+import { 
+  getCurrentUserProfile, 
+  updateUserProfile, 
+  uploadProfilePhoto, 
+  deleteProfilePhoto, 
+  updatePassword, 
+  deleteAccount 
+} from '../lib/profileManagement';
 
 const SettingsPage: React.FC = () => {
-  const { user, logout } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [notifications, setNotifications] = useState({
-    email: true,
-    push: true,
-    sms: false,
-    projectUpdates: true,
-    fundingAlerts: true,
-    communityNews: false
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Profile data
+  const [profileData, setProfileData] = useState({
+    name: '',
+    bio: '',
+    location: '',
+    website: '',
+    phone: '',
+    avatar_url: ''
   });
-  const [privacy, setPrivacy] = useState({
+
+  // Form inputs
+  const [formData, setFormData] = useState({
+    name: '',
+    bio: '',
+    location: '',
+    website: '',
+    phone: ''
+  });
+
+  // Password change
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false
+  });
+
+  // Photo upload
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  // Settings
+  const [settings, setSettings] = useState({
+    emailNotifications: true,
+    pushNotifications: true,
     profileVisibility: 'public',
-    showEmail: false,
-    showPhone: false,
-    allowMessages: true,
-    showLocation: true
+    dataSharing: false
   });
 
-  const tabs = [
-    { id: 'profile', name: 'Profile Settings', icon: User },
-    { id: 'security', name: 'Security & Privacy', icon: Shield },
-    { id: 'notifications', name: 'Notifications', icon: Bell },
-    { id: 'preferences', name: 'Preferences', icon: Palette },
-    { id: 'account', name: 'Account', icon: Key }
-  ];
+  useEffect(() => {
+    if (user) {
+      loadProfileData();
+    }
+  }, [user]);
 
-  const handleSaveProfile = () => {
-    // Handle profile save
-    console.log('Profile saved');
-  };
-
-  const handleChangePassword = () => {
-    // Handle password change
-    console.log('Password changed');
-  };
-
-  const handleDeleteAccount = () => {
-    // Handle account deletion
-    console.log('Account deleted');
-  };
-
-  const renderProfileSettings = () => (
-    <div className="space-y-6">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-        <h3 className="text-xl font-bold text-gray-900 dark:text-white font-artistic italic mb-6">Personal Information</h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Full Name</label>
-            <input 
-              type="text" 
-              defaultValue={user?.name || ''}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
-            <input 
-              type="text" 
-              defaultValue={user?.name?.toLowerCase().replace(/\s+/g, '') || ''}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-            <input 
-              type="email" 
-              defaultValue={user?.email || ''}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-            <input 
-              type="tel" 
-              defaultValue=""
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-            />
-          </div>
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
-            <textarea 
-              rows={3}
-              defaultValue="Youth changemaker passionate about community development and sustainable innovation."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
-            <input 
-              type="text" 
-              defaultValue="Nairobi, Kenya"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Focus Area</label>
-            <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent">
-              <option value="education">Education</option>
-              <option value="health">Health & Sanitation</option>
-              <option value="environment">Environment</option>
-              <option value="agriculture">Agriculture</option>
-              <option value="technology">Technology</option>
-              <option value="economic">Economic Development</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="mt-6">
-                        <button 
-                onClick={handleSaveProfile}
-                className="bg-primary hover:bg-primary-dark text-black font-semibold py-2 px-6 rounded-lg transition-colors"
-              >
-            Save Changes
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderSecuritySettings = () => (
-    <div className="space-y-6">
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-6">Change Password</h3>
-        
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
-            <div className="relative">
-              <input 
-                type={showPassword ? "text" : "password"}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent pr-10"
-                placeholder="Enter current password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
-              >
-                {showPassword ? <EyeOff className="h-4 w-4 text-gray-400" /> : <Eye className="h-4 w-4 text-gray-400" />}
-              </button>
-            </div>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
-            <div className="relative">
-              <input 
-                type={showNewPassword ? "text" : "password"}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent pr-10"
-                placeholder="Enter new password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowNewPassword(!showNewPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
-              >
-                {showNewPassword ? <EyeOff className="h-4 w-4 text-gray-400" /> : <Eye className="h-4 w-4 text-gray-400" />}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-6">
-                        <button 
-                onClick={handleChangePassword}
-                className="bg-primary hover:bg-primary-dark text-black font-semibold py-2 px-6 rounded-lg transition-colors"
-              >
-            Change Password
-          </button>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-6">Privacy Settings</h3>
-        
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Profile Visibility</label>
-            <select 
-              value={privacy.profileVisibility}
-              onChange={(e) => setPrivacy({...privacy, profileVisibility: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-            >
-              <option value="public">Public</option>
-              <option value="friends">Friends Only</option>
-              <option value="private">Private</option>
-            </select>
-          </div>
-          
-          <div className="space-y-3">
-            <label className="block text-sm font-medium text-gray-700">Contact Information</label>
-            <div className="space-y-2">
-              <label className="flex items-center">
-                <input 
-                  type="checkbox" 
-                  checked={privacy.showEmail}
-                  onChange={(e) => setPrivacy({...privacy, showEmail: e.target.checked})}
-                  className="rounded border-gray-300 text-amber-600 focus:ring-amber-500"
-                />
-                <span className="ml-2 text-sm text-gray-700">Show email address</span>
-              </label>
-              <label className="flex items-center">
-                <input 
-                  type="checkbox" 
-                  checked={privacy.showPhone}
-                  onChange={(e) => setPrivacy({...privacy, showPhone: e.target.checked})}
-                  className="rounded border-gray-300 text-amber-600 focus:ring-amber-500"
-                />
-                <span className="ml-2 text-sm text-gray-700">Show phone number</span>
-              </label>
-              <label className="flex items-center">
-                <input 
-                  type="checkbox" 
-                  checked={privacy.showLocation}
-                  onChange={(e) => setPrivacy({...privacy, showLocation: e.target.checked})}
-                  className="rounded border-gray-300 text-amber-600 focus:ring-amber-500"
-                />
-                <span className="ml-2 text-sm text-gray-700">Show location</span>
-              </label>
-            </div>
-          </div>
-          
-          <div className="space-y-3">
-            <label className="block text-sm font-medium text-gray-700">Messages</label>
-            <label className="flex items-center">
-              <input 
-                type="checkbox" 
-                checked={privacy.allowMessages}
-                onChange={(e) => setPrivacy({...privacy, allowMessages: e.target.checked})}
-                className="rounded border-gray-300 text-amber-600 focus:ring-amber-500"
-              />
-              <span className="ml-2 text-sm text-gray-700">Allow messages from other users</span>
-            </label>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderNotificationSettings = () => (
-    <div className="space-y-6">
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-6">Notification Preferences</h3>
-        
-        <div className="space-y-6">
-          <div>
-            <h4 className="text-lg font-semibold text-gray-800 mb-4">Communication Channels</h4>
-            <div className="space-y-3">
-              <label className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <Mail className="h-5 w-5 text-gray-500 mr-3" />
-                  <span className="text-sm font-medium text-gray-700">Email Notifications</span>
-                </div>
-                <input 
-                  type="checkbox" 
-                  checked={notifications.email}
-                  onChange={(e) => setNotifications({...notifications, email: e.target.checked})}
-                  className="rounded border-gray-300 text-amber-600 focus:ring-amber-500"
-                />
-              </label>
-              <label className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <Smartphone className="h-5 w-5 text-gray-500 mr-3" />
-                  <span className="text-sm font-medium text-gray-700">Push Notifications</span>
-                </div>
-                <input 
-                  type="checkbox" 
-                  checked={notifications.push}
-                  onChange={(e) => setNotifications({...notifications, push: e.target.checked})}
-                  className="rounded border-gray-300 text-amber-600 focus:ring-amber-500"
-                />
-              </label>
-              <label className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <Phone className="h-5 w-5 text-gray-500 mr-3" />
-                  <span className="text-sm font-medium text-gray-700">SMS Notifications</span>
-                </div>
-                <input 
-                  type="checkbox" 
-                  checked={notifications.sms}
-                  onChange={(e) => setNotifications({...notifications, sms: e.target.checked})}
-                  className="rounded border-gray-300 text-amber-600 focus:ring-amber-500"
-                />
-              </label>
-            </div>
-          </div>
-          
-          <div>
-            <h4 className="text-lg font-semibold text-gray-800 mb-4">Notification Types</h4>
-            <div className="space-y-3">
-              <label className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Project Updates</span>
-                <input 
-                  type="checkbox" 
-                  checked={notifications.projectUpdates}
-                  onChange={(e) => setNotifications({...notifications, projectUpdates: e.target.checked})}
-                  className="rounded border-gray-300 text-amber-600 focus:ring-amber-500"
-                />
-              </label>
-              <label className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Funding Alerts</span>
-                <input 
-                  type="checkbox" 
-                  checked={notifications.fundingAlerts}
-                  onChange={(e) => setNotifications({...notifications, fundingAlerts: e.target.checked})}
-                  className="rounded border-gray-300 text-amber-600 focus:ring-amber-500"
-                />
-              </label>
-              <label className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Community News</span>
-                <input 
-                  type="checkbox" 
-                  checked={notifications.communityNews}
-                  onChange={(e) => setNotifications({...notifications, communityNews: e.target.checked})}
-                  className="rounded border-gray-300 text-amber-600 focus:ring-amber-500"
-                />
-              </label>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderPreferences = () => (
-    <div className="space-y-6">
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-6">Display Preferences</h3>
-        
-        <div className="space-y-6">
-          <div>
-            <h4 className="text-lg font-semibold text-gray-800 mb-4">Theme</h4>
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => toggleTheme()}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg border ${
-                  theme === 'light' ? 'border-amber-500 bg-amber-50 text-amber-700' : 'border-gray-300 text-gray-700'
-                }`}
-              >
-                <Sun className="h-4 w-4" />
-                <span>Light Mode</span>
-              </button>
-              <button
-                onClick={() => toggleTheme()}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg border ${
-                  theme === 'dark' ? 'border-amber-500 bg-amber-50 text-amber-700' : 'border-gray-300 text-gray-700'
-                }`}
-              >
-                <Moon className="h-4 w-4" />
-                <span>Dark Mode</span>
-              </button>
-            </div>
-          </div>
-          
-          <div>
-            <h4 className="text-lg font-semibold text-gray-800 mb-4">Sound</h4>
-            <div className="flex items-center space-x-4">
-              <button className="flex items-center space-x-2 px-4 py-2 rounded-lg border border-gray-300 text-gray-700">
-                <Volume2 className="h-4 w-4" />
-                <span>Sound On</span>
-              </button>
-              <button className="flex items-center space-x-2 px-4 py-2 rounded-lg border border-gray-300 text-gray-700">
-                <VolumeX className="h-4 w-4" />
-                <span>Sound Off</span>
-              </button>
-            </div>
-          </div>
-          
-          <div>
-            <h4 className="text-lg font-semibold text-gray-800 mb-4">Language</h4>
-            <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent">
-              <option value="en">English</option>
-              <option value="sw">Swahili</option>
-              <option value="fr">French</option>
-            </select>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderAccountSettings = () => (
-    <div className="space-y-6">
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-6">Account Actions</h3>
-        
-        <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-            <div className="flex items-center space-x-3">
-              <Download className="h-5 w-5 text-blue-600" />
-              <div>
-                <h4 className="font-medium text-blue-900">Download Data</h4>
-                <p className="text-sm text-blue-700">Get a copy of your data</p>
-              </div>
-            </div>
-            <button className="text-blue-600 hover:text-blue-700 font-medium">
-              Download
-            </button>
-          </div>
-          
-          <div className="flex items-center justify-between p-4 bg-yellow-50 rounded-lg">
-            <div className="flex items-center space-x-3">
-              <Globe className="h-5 w-5 text-yellow-600" />
-              <div>
-                <h4 className="font-medium text-yellow-900">Deactivate Account</h4>
-                <p className="text-sm text-yellow-700">Temporarily disable your account</p>
-              </div>
-            </div>
-            <button className="text-yellow-600 hover:text-yellow-700 font-medium">
-              Deactivate
-            </button>
-          </div>
-          
-          <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg">
-            <div className="flex items-center space-x-3">
-              <Trash2 className="h-5 w-5 text-red-600" />
-              <div>
-                <h4 className="font-medium text-red-900">Delete Account</h4>
-                <p className="text-sm text-red-700">Permanently delete your account and data</p>
-              </div>
-            </div>
-            <button 
-              onClick={handleDeleteAccount}
-              className="text-red-600 hover:text-red-700 font-medium"
-            >
-              Delete
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'profile':
-        return renderProfileSettings();
-      case 'security':
-        return renderSecuritySettings();
-      case 'notifications':
-        return renderNotificationSettings();
-      case 'preferences':
-        return renderPreferences();
-      case 'account':
-        return renderAccountSettings();
-      default:
-        return renderProfileSettings();
+  const loadProfileData = async () => {
+    try {
+      const profile = await getCurrentUserProfile();
+      console.log('SettingsPage - Loaded profile data:', profile);
+      if (profile) {
+        setProfileData({
+          name: profile.name || '',
+          bio: profile.bio || '',
+          location: profile.location || '',
+          website: profile.website || '',
+          phone: profile.phone || '',
+          avatar_url: profile.avatar_url || ''
+        });
+        setFormData({
+          name: profile.name || '',
+          bio: profile.bio || '',
+          location: profile.location || '',
+          website: profile.website || '',
+          phone: profile.phone || ''
+        });
+      }
+    } catch (error) {
+      console.error('Error loading profile data:', error);
+      setMessage({ type: 'error', text: 'Failed to load profile data' });
     }
   };
 
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setMessage({ type: 'error', text: 'File size must be less than 5MB' });
+        return;
+      }
+      
+      if (!file.type.startsWith('image/')) {
+        setMessage({ type: 'error', text: 'Please select an image file' });
+        return;
+      }
+
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPhotoPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handlePhotoUpload = async () => {
+    if (!selectedFile) return;
+
+    setUploadingPhoto(true);
+    try {
+      console.log('SettingsPage - Starting photo upload for file:', selectedFile.name);
+      const photoUrl = await uploadProfilePhoto(selectedFile);
+      console.log('SettingsPage - Photo upload result:', photoUrl);
+      
+      if (photoUrl) {
+        setMessage({ type: 'success', text: 'Profile photo uploaded successfully!' });
+        setSelectedFile(null);
+        setPhotoPreview(null);
+        // Reload profile data to show new photo
+        await loadProfileData();
+      } else {
+        setMessage({ type: 'error', text: 'Failed to upload profile photo - no URL returned' });
+      }
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+      setMessage({ type: 'error', text: 'Failed to upload profile photo' });
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    try {
+      const updateData = {
+        name: formData.name,
+        bio: formData.bio,
+        location: formData.location,
+        website: formData.website,
+        phone: formData.phone
+      };
+
+      await updateUserProfile(updateData);
+      setProfileData({ ...formData, avatar_url: profileData.avatar_url });
+      setMessage({ type: 'success', text: 'Profile updated successfully!' });
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      setMessage({ type: 'error', text: 'Failed to update profile' });
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setMessage({ type: 'error', text: 'New passwords do not match' });
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      setMessage({ type: 'error', text: 'Password must be at least 6 characters' });
+      return;
+    }
+
+    try {
+      await updatePassword(passwordData.currentPassword, passwordData.newPassword);
+      setMessage({ type: 'success', text: 'Password updated successfully!' });
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+    } catch (error) {
+      console.error('Error changing password:', error);
+      setMessage({ type: 'error', text: 'Failed to update password' });
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+      try {
+        await deleteAccount();
+        setMessage({ type: 'success', text: 'Account deleted successfully' });
+      } catch (error) {
+        console.error('Error deleting account:', error);
+        setMessage({ type: 'error', text: 'Failed to delete account' });
+      }
+    }
+  };
+
+  const tabs = [
+    { id: 'profile', label: 'Profile Settings', icon: User },
+    { id: 'security', label: 'Security', icon: Lock },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
+    { id: 'privacy', label: 'Privacy', icon: Shield },
+    { id: 'account', label: 'Account', icon: Trash2 }
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-16">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white font-bold-rounded mb-2">Settings</h1>
-            <p className="text-gray-600 dark:text-gray-400">Manage your account preferences and privacy</p>
+    <div className="container mx-auto px-4 py-8">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-4xl mx-auto"
+      >
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
+          Settings
+        </h1>
+
+        {message && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`mb-6 p-4 rounded-lg ${
+              message.type === 'success' 
+                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+            }`}
+          >
+            {message.text}
+          </motion.div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <nav className="space-y-2">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                      activeTab === tab.id
+                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
+                        : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
+                    }`}
+                  >
+                    <Icon size={20} />
+                    <span className="font-medium">{tab.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Sidebar */}
-            <div className="lg:col-span-1">
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4">
-                <nav className="space-y-2">
-                  {tabs.map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${
-                        activeTab === tab.id
-                          ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-700'
-                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                      }`}
-                    >
-                      <tab.icon className="h-5 w-5" />
-                      <span className="font-medium">{tab.name}</span>
-                    </button>
-                  ))}
-                </nav>
-              </div>
-            </div>
+          {/* Main Content */}
+          <div className="lg:col-span-3">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+              {/* Profile Settings */}
+              {activeTab === 'profile' && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="space-y-6"
+                >
+                  <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
+                    Profile Settings
+                  </h2>
 
-            {/* Main Content */}
-            <div className="lg:col-span-3">
-              {renderContent()}
+                  {/* Profile Photo */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                      Profile Photo
+                    </h3>
+                    <div className="flex items-center space-x-4">
+                      <div className="relative">
+                        <div className="w-20 h-20 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
+                          {profileData.avatar_url ? (
+                            <img
+                              src={profileData.avatar_url}
+                              alt="Profile"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <User size={32} className="text-gray-400" />
+                          )}
+                        </div>
+                        <label className="absolute bottom-0 right-0 bg-blue-500 text-white rounded-full p-1 cursor-pointer hover:bg-blue-600 transition-colors">
+                          <Camera size={16} />
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileSelect}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+                      
+                      {selectedFile && (
+                        <div className="flex items-center space-x-2">
+                          <div className="w-16 h-16 rounded-full overflow-hidden">
+                            <img
+                              src={photoPreview || ''}
+                              alt="Preview"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={handlePhotoUpload}
+                              disabled={uploadingPhoto}
+                              className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 disabled:opacity-50"
+                            >
+                              {uploadingPhoto ? 'Uploading...' : 'Upload'}
+                            </button>
+                            <button
+                              onClick={() => {
+                                setSelectedFile(null);
+                                setPhotoPreview(null);
+                              }}
+                              className="px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600"
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Personal Information */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                      Personal Information
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Full Name
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.name}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Email
+                        </label>
+                        <input
+                          type="email"
+                          value={user?.email || ''}
+                          disabled
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-600 dark:text-gray-400"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Bio
+                        </label>
+                        <textarea
+                          value={formData.bio}
+                          onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                          rows={3}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                          placeholder="Tell us about yourself..."
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Location
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.location}
+                          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                          placeholder="City, Country"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Website
+                        </label>
+                        <input
+                          type="url"
+                          value={formData.website}
+                          onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                          placeholder="https://yourwebsite.com"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Phone
+                        </label>
+                        <input
+                          type="tel"
+                          value={formData.phone}
+                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                          placeholder="+1234567890"
+                        />
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleSaveProfile}
+                      className="flex items-center space-x-2 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                    >
+                      <Save size={16} />
+                      <span>Save Changes</span>
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Security Settings */}
+              {activeTab === 'security' && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="space-y-6"
+                >
+                  <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
+                    Security Settings
+                  </h2>
+
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                      Change Password
+                    </h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Current Password
+                        </label>
+                        <div className="relative">
+                          <input
+                            type={showPasswords.current ? 'text' : 'password'}
+                            value={passwordData.currentPassword}
+                            onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                            className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPasswords({ ...showPasswords, current: !showPasswords.current })}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          >
+                            {showPasswords.current ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          New Password
+                        </label>
+                        <div className="relative">
+                          <input
+                            type={showPasswords.new ? 'text' : 'password'}
+                            value={passwordData.newPassword}
+                            onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                            className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          >
+                            {showPasswords.new ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Confirm New Password
+                        </label>
+                        <div className="relative">
+                          <input
+                            type={showPasswords.confirm ? 'text' : 'password'}
+                            value={passwordData.confirmPassword}
+                            onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                            className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          >
+                            {showPasswords.confirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleChangePassword}
+                        className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                      >
+                        Update Password
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Notifications Settings */}
+              {activeTab === 'notifications' && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="space-y-6"
+                >
+                  <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
+                    Notification Settings
+                  </h2>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                          Email Notifications
+                        </h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Receive notifications via email
+                        </p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={settings.emailNotifications}
+                          onChange={(e) => setSettings({ ...settings, emailNotifications: e.target.checked })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                      </label>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                          Push Notifications
+                        </h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Receive push notifications
+                        </p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={settings.pushNotifications}
+                          onChange={(e) => setSettings({ ...settings, pushNotifications: e.target.checked })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                      </label>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Privacy Settings */}
+              {activeTab === 'privacy' && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="space-y-6"
+                >
+                  <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
+                    Privacy Settings
+                  </h2>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Profile Visibility
+                      </label>
+                      <select
+                        value={settings.profileVisibility}
+                        onChange={(e) => setSettings({ ...settings, profileVisibility: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                      >
+                        <option value="public">Public</option>
+                        <option value="private">Private</option>
+                        <option value="friends">Friends Only</option>
+                      </select>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                          Data Sharing
+                        </h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Allow data to be shared with third parties
+                        </p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={settings.dataSharing}
+                          onChange={(e) => setSettings({ ...settings, dataSharing: e.target.checked })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                      </label>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Account Settings */}
+              {activeTab === 'account' && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="space-y-6"
+                >
+                  <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
+                    Account Settings
+                  </h2>
+
+                  <div className="space-y-4">
+                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                      <h3 className="text-lg font-medium text-red-800 dark:text-red-200 mb-2">
+                        Delete Account
+                      </h3>
+                      <p className="text-sm text-red-600 dark:text-red-300 mb-4">
+                        This action cannot be undone. This will permanently delete your account and remove all your data from our servers.
+                      </p>
+                      <button
+                        onClick={handleDeleteAccount}
+                        className="flex items-center space-x-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                      >
+                        <Trash2 size={16} />
+                        <span>Delete Account</span>
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

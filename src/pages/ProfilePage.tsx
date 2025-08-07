@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, MapPin, Users, Target, TrendingUp, Heart, Share2, Mail, Phone, FileText, MessageSquare, ShoppingBag, Calendar, Eye, Edit, Trash2, Plus } from 'lucide-react';
+import { ArrowLeft, MapPin, Users, Target, TrendingUp, Heart, Share2, Mail, Phone, FileText, MessageSquare, ShoppingBag, Calendar, Eye, Edit, Trash2, Plus, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { fetchUserBlogPosts, fetchUserMicroblogPosts, fetchUserProducts } from '../lib/userProjects';
 import { fetchPublicUserProfile, fetchUserStats } from '../lib/userSearch';
+import { toggleFollow, getUserFollowStats, testFollowersTable, getFollowersList, getFollowingList } from '../lib/followers';
+import { supabase } from '../lib/supabase';
 
 interface UserContent {
   blogs: any[];
@@ -19,9 +21,16 @@ const ProfilePage: React.FC = () => {
   const [userContent, setUserContent] = useState<UserContent>({ blogs: [], microblogs: [], products: [] });
   const [profileUser, setProfileUser] = useState<any>(null);
   const [userStats, setUserStats] = useState<any>(null);
+  const [followStats, setFollowStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isOwnProfile, setIsOwnProfile] = useState(false);
+  const [showFollowersModal, setShowFollowersModal] = useState(false);
+  const [showFollowingModal, setShowFollowingModal] = useState(false);
+  const [followersList, setFollowersList] = useState<any[]>([]);
+  const [followingList, setFollowingList] = useState<any[]>([]);
+  const [loadingFollowers, setLoadingFollowers] = useState(false);
+  const [loadingFollowing, setLoadingFollowing] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -44,11 +53,30 @@ const ProfilePage: React.FC = () => {
           setLoading(false);
           return;
         }
+        console.log('ProfilePage - Profile data:', profileData);
+        console.log('ProfilePage - Avatar URL:', profileData.avatar_url);
         setProfileUser(profileData);
 
         // Fetch user stats
         const stats = await fetchUserStats(id);
+        console.log('ProfilePage - User stats:', stats);
         setUserStats(stats);
+
+        // Fetch follow stats
+        const followStats = await getUserFollowStats(id, user?.id);
+        console.log('ProfilePage - Follow stats:', followStats);
+        setFollowStats(followStats);
+        
+        // Test if followers table exists
+        try {
+          const { data: testData, error: testError } = await supabase
+            .from('followers')
+            .select('id')
+            .limit(1);
+          console.log('ProfilePage - Followers table test:', { data: testData, error: testError });
+        } catch (error) {
+          console.error('ProfilePage - Followers table error:', error);
+        }
 
         // Fetch user content
         const [blogs, microblogs, products] = await Promise.all([
@@ -73,6 +101,29 @@ const ProfilePage: React.FC = () => {
     fetchUserData();
   }, [id, user?.id]);
 
+  // Refresh data when component comes into focus (for when user returns from settings)
+  useEffect(() => {
+    const handleFocus = () => {
+      if (id && !loading) {
+        // Refetch profile data when window regains focus
+        const fetchUserData = async () => {
+          try {
+            const profileData = await fetchPublicUserProfile(id);
+            if (profileData) {
+              setProfileUser(profileData);
+            }
+          } catch (err) {
+            console.error('Error refreshing profile data:', err);
+          }
+        };
+        fetchUserData();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [id, loading]);
+
   const handleShare = () => {
     const shareText = `Check out ${profileUser.name}'s amazing changemaker profile!`;
     const shareUrl = `${window.location.origin}/profile/${id}`;
@@ -89,8 +140,67 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  const handleFollow = () => {
-    alert('You are now following this changemaker!');
+  const handleFollow = async () => {
+    if (!user) {
+      alert('Please sign in to follow changemakers');
+      return;
+    }
+
+    if (isOwnProfile) {
+      alert('You cannot follow yourself');
+      return;
+    }
+
+    try {
+      const result = await toggleFollow(user.id, id!);
+      if (result.success) {
+        // Update the follow stats locally
+        setFollowStats((prev: any) => ({
+          ...prev,
+          is_following: result.isFollowing,
+          followers_count: result.isFollowing 
+            ? (prev?.followers_count || 0) + 1
+            : Math.max((prev?.followers_count || 0) - 1, 0)
+        }));
+      } else {
+        alert('Failed to update follow status. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error following user:', error);
+      alert('Failed to update follow status. Please try again.');
+    }
+  };
+
+  const handleShowFollowers = async () => {
+    if (!id) return;
+    
+    setLoadingFollowers(true);
+    setShowFollowersModal(true);
+    
+    try {
+      const followers = await getFollowersList(id);
+      setFollowersList(followers);
+    } catch (error) {
+      console.error('Error fetching followers:', error);
+    } finally {
+      setLoadingFollowers(false);
+    }
+  };
+
+  const handleShowFollowing = async () => {
+    if (!id) return;
+    
+    setLoadingFollowing(true);
+    setShowFollowingModal(true);
+    
+    try {
+      const following = await getFollowingList(id);
+      setFollowingList(following);
+    } catch (error) {
+      console.error('Error fetching following:', error);
+    } finally {
+      setLoadingFollowing(false);
+    }
   };
 
   // Loading state
@@ -165,6 +275,30 @@ const ProfilePage: React.FC = () => {
         <p className="text-gray-700 leading-relaxed mb-4">
           {profileUser.bio || 'This changemaker is making a difference in their community through innovative projects and sustainable solutions.'}
         </p>
+        
+        {/* Contact Information */}
+        {(profileUser.location || profileUser.website) && (
+          <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 mb-4">
+            <h3 className="font-semibold text-gray-800 mb-2">Contact Information</h3>
+            <div className="space-y-2">
+              {profileUser.location && (
+                <div className="flex items-center text-gray-700">
+                  <MapPin className="w-4 h-4 mr-2 text-gray-500" />
+                  <span className="text-sm">{profileUser.location}</span>
+                </div>
+              )}
+              {profileUser.website && (
+                <div className="flex items-center text-gray-700">
+                  <Phone className="w-4 h-4 mr-2 text-gray-500" />
+                  <a href={profileUser.website} target="_blank" rel="noopener noreferrer" className="text-sm text-teal-600 hover:text-teal-700">
+                    {profileUser.website}
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        
         <div className="bg-teal-50 rounded-xl p-4 border border-teal-200">
           <h3 className="font-semibold text-teal-800 mb-2">Impact</h3>
           <p className="text-teal-700">Empowering communities through education, healthcare, and sustainable development initiatives.</p>
@@ -179,21 +313,32 @@ const ProfilePage: React.FC = () => {
         className="bg-white rounded-2xl shadow-lg p-6"
       >
         <h2 className="text-xl font-bold text-gray-900 mb-4">Impact Statistics</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="text-center p-4 bg-gray-50 rounded-xl">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <button 
+            onClick={handleShowFollowers}
+            className="text-center p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer"
+          >
             <Users className="w-8 h-8 text-teal-600 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-900">0</div>
+            <div className="text-2xl font-bold text-gray-900">{followStats?.followers_count || 0}</div>
             <div className="text-gray-600 text-sm">Followers</div>
-          </div>
+          </button>
+          <button 
+            onClick={handleShowFollowing}
+            className="text-center p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer"
+          >
+            <Users className="w-8 h-8 text-teal-600 mx-auto mb-2" />
+            <div className="text-2xl font-bold text-gray-900">{followStats?.following_count || 0}</div>
+            <div className="text-gray-600 text-sm">Following</div>
+          </button>
           <div className="text-center p-4 bg-gray-50 rounded-xl">
             <Target className="w-8 h-8 text-teal-600 mx-auto mb-2" />
             <div className="text-2xl font-bold text-gray-900">{userStats?.projects || 0}</div>
             <div className="text-gray-600 text-sm">Projects</div>
           </div>
           <div className="text-center p-4 bg-gray-50 rounded-xl">
-            <TrendingUp className="w-8 h-8 text-teal-600 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-900">KSh 0</div>
-            <div className="text-gray-600 text-sm">Funds Raised</div>
+            <FileText className="w-8 h-8 text-teal-600 mx-auto mb-2" />
+            <div className="text-2xl font-bold text-gray-900">{userStats?.blogs || 0}</div>
+            <div className="text-gray-600 text-sm">Blogs</div>
           </div>
         </div>
       </motion.div>
@@ -394,10 +539,18 @@ const ProfilePage: React.FC = () => {
             >
               {/* Profile Image */}
               <div className="text-center mb-6">
-                <div className="w-32 h-32 rounded-full bg-gradient-to-r from-primary to-primary-dark flex items-center justify-center mx-auto mb-4 border-4 border-teal-200">
-                  <span className="text-white font-bold text-3xl">
-                    {profileUser.name?.charAt(0) || 'U'}
-                  </span>
+                <div className="w-32 h-32 rounded-full bg-gradient-to-r from-primary to-primary-dark flex items-center justify-center mx-auto mb-4 border-4 border-teal-200 overflow-hidden">
+                  {profileUser.avatar_url ? (
+                    <img 
+                      src={profileUser.avatar_url} 
+                      alt={profileUser.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-white font-bold text-3xl">
+                      {profileUser.name?.charAt(0) || 'U'}
+                    </span>
+                  )}
                 </div>
                 <h1 className="text-2xl font-bold text-gray-900 mb-1">{profileUser.name}</h1>
                 <p className="text-gray-600 mb-2">Youth Changemaker</p>
@@ -448,15 +601,20 @@ const ProfilePage: React.FC = () => {
                       <Share2 className="w-4 h-4 mr-2 inline" />
                       Share My Profile
                     </button>
+
                   </>
                 ) : (
                   <>
                     <button 
                       onClick={handleFollow}
-                      className="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 px-4 rounded-xl transition-colors"
+                      className={`w-full font-semibold py-3 px-4 rounded-xl transition-colors ${
+                        followStats?.is_following
+                          ? 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                          : 'bg-teal-600 hover:bg-teal-700 text-white'
+                      }`}
                     >
                       <Heart className="w-4 h-4 mr-2 inline" />
-                      Follow Changemaker
+                      {followStats?.is_following ? 'Following' : 'Follow Changemaker'}
                     </button>
                     <button 
                       onClick={handleShare}
@@ -521,6 +679,128 @@ const ProfilePage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Followers Modal */}
+      {showFollowersModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 max-h-[80vh] overflow-hidden"
+          >
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold text-gray-900">Followers</h3>
+                <button
+                  onClick={() => setShowFollowersModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 max-h-[60vh] overflow-y-auto">
+              {loadingFollowers ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading followers...</p>
+                </div>
+              ) : followersList.length === 0 ? (
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No Followers Yet</h3>
+                  <p className="text-gray-600">This changemaker doesn't have any followers yet.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {followersList.map((follower) => (
+                    <div key={follower.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                      <div className="w-10 h-10 bg-teal-600 rounded-full flex items-center justify-center">
+                        <span className="text-white font-semibold">
+                          {follower.name?.charAt(0) || 'U'}
+                        </span>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900">{follower.name}</h4>
+                        <p className="text-sm text-gray-600">{follower.email}</p>
+                      </div>
+                      <Link
+                        to={`/profile/${follower.id}`}
+                        className="text-teal-600 hover:text-teal-700 text-sm font-medium"
+                      >
+                        View Profile
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Following Modal */}
+      {showFollowingModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 max-h-[80vh] overflow-hidden"
+          >
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold text-gray-900">Following</h3>
+                <button
+                  onClick={() => setShowFollowingModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 max-h-[60vh] overflow-y-auto">
+              {loadingFollowing ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading following...</p>
+                </div>
+              ) : followingList.length === 0 ? (
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Not Following Anyone</h3>
+                  <p className="text-gray-600">This changemaker isn't following anyone yet.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {followingList.map((following) => (
+                    <div key={following.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                      <div className="w-10 h-10 bg-teal-600 rounded-full flex items-center justify-center">
+                        <span className="text-white font-semibold">
+                          {following.name?.charAt(0) || 'U'}
+                        </span>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900">{following.name}</h4>
+                        <p className="text-sm text-gray-600">{following.email}</p>
+                      </div>
+                      <Link
+                        to={`/profile/${following.id}`}
+                        className="text-teal-600 hover:text-teal-700 text-sm font-medium"
+                      >
+                        View Profile
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      )}
     </motion.div>
   );
 };

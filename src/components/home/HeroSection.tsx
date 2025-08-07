@@ -92,15 +92,15 @@ const HeroSection = () => {
             className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 text-center"
           >
             <div className="glass-effect p-6 rounded-lg">
-              <div className="text-3xl font-bold text-primary">50K+</div>
+              <div className="text-3xl font-bold text-amber-400">50K+</div>
               <div className="text-white">Lives Impacted</div>
             </div>
             <div className="glass-effect p-6 rounded-lg">
-              <div className="text-3xl font-bold text-secondary">$2.5M</div>
+              <div className="text-3xl font-bold text-red-400">$2.5M</div>
               <div className="text-white">Funds Raised</div>
             </div>
             <div className="glass-effect p-6 rounded-lg">
-              <div className="text-3xl font-bold text-primary">25+</div>
+              <div className="text-3xl font-bold text-teal-400">25+</div>
               <div className="text-white">Countries Served</div>
             </div>
           </motion.div>

@@ -27,7 +27,7 @@ export const fetchAllPublicUsers = async (): Promise<PublicUserProfile[]> => {
     
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, name, email, created_at, updated_at')
+      .select('id, name, email, created_at, updated_at, bio, location, website, avatar_url')
       .order('created_at', { ascending: false });
 
     console.log('All users found:', data);
@@ -52,8 +52,8 @@ export const searchUsers = async (query: string): Promise<PublicUserProfile[]> =
     
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, name, email, created_at, updated_at')
-      .or(`name.ilike.%${query}%`)
+      .select('id, name, email, created_at, updated_at, bio, location, website, avatar_url')
+      .or(`name.ilike.%${query}%,bio.ilike.%${query}%,location.ilike.%${query}%`)
       .order('created_at', { ascending: false });
 
     console.log('Search results:', data);
@@ -76,7 +76,7 @@ export const fetchPublicUserProfile = async (userId: string): Promise<PublicUser
   try {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, name, email, created_at, updated_at')
+      .select('id, name, email, created_at, updated_at, bio, location, website, avatar_url')
       .eq('id', userId)
       .single();
 
@@ -95,35 +95,34 @@ export const fetchPublicUserProfile = async (userId: string): Promise<PublicUser
 // Get user's stats (projects, blogs, etc.)
 export const fetchUserStats = async (userId: string) => {
   try {
-    const [projects, blogs, microblogs] = await Promise.all([
-      supabase.from('user_projects').select('id').eq('author_id', userId),
+    const [projects, blogs, microblogs, followers] = await Promise.all([
+      supabase.from('user_projects').select('id').eq('user_id', userId),
       supabase.from('blog_posts').select('id').eq('author_id', userId).eq('is_published', true),
-      supabase.from('microblog_posts').select('id').eq('author_id', userId).eq('is_published', true)
+      supabase.from('microblog_posts').select('id').eq('author_id', userId).eq('is_published', true),
+      supabase.from('followers').select('id').eq('following_id', userId)
     ]);
 
-    return {
+    const stats = {
       projects: projects.data?.length || 0,
       blogs: blogs.data?.length || 0,
-      microblogs: microblogs.data?.length || 0
+      microblogs: microblogs.data?.length || 0,
+      followers: followers.data?.length || 0
     };
+
+    return stats;
   } catch (error) {
     console.error('Error fetching user stats:', error);
-    return { projects: 0, blogs: 0, microblogs: 0 };
+    return { projects: 0, blogs: 0, microblogs: 0, followers: 0 };
   }
 }; 
 
 // Test function to check database contents
 export const testDatabaseConnection = async () => {
   try {
-    console.log('Testing database connection...');
-    
     // Test 1: Check if we can access profiles table at all
     const { data: allData, error: allError } = await supabase
       .from('profiles')
       .select('*');
-    
-    console.log('All profiles data:', allData);
-    console.log('All profiles error:', allError);
     
     // Test 2: Check table structure
     const { data: structureData, error: structureError } = await supabase
@@ -131,10 +130,32 @@ export const testDatabaseConnection = async () => {
       .select('id, name, email')
       .limit(1);
     
-    console.log('Structure test data:', structureData);
-    console.log('Structure test error:', structureError);
+    // Test 3: Check user_projects table
+    const { data: projectsData, error: projectsError } = await supabase
+      .from('user_projects')
+      .select('id, user_id, title')
+      .limit(5);
     
-    return { allData, structureData };
+    // Test 4: Check blog_posts table
+    const { data: blogsData, error: blogsError } = await supabase
+      .from('blog_posts')
+      .select('id, author_id, title, is_published')
+      .limit(5);
+    
+    // Test 5: Check microblog_posts table
+    const { data: microblogsData, error: microblogsError } = await supabase
+      .from('microblog_posts')
+      .select('id, author_id, title, is_published')
+      .limit(5);
+    
+    return { 
+      allData, 
+      structureData, 
+      projectsData, 
+      blogsData, 
+      microblogsData,
+      errors: { allError, structureError, projectsError, blogsError, microblogsError }
+    };
   } catch (error) {
     console.error('Database test error:', error);
     return null;
