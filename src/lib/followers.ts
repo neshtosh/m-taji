@@ -172,28 +172,47 @@ export const getUserFollowStats = async (userId: string, currentUserId?: string)
 // Get list of users that a user is following
 export const getFollowingList = async (userId: string): Promise<any[]> => {
   try {
-    const { data, error } = await supabase
+    console.log('Fetching following list for user:', userId);
+    
+    // First, let's check what data exists in the followers table
+    const { data: rawData, error: rawError } = await supabase
       .from('followers')
-      .select(`
-        following_id,
-        profiles!followers_following_id_fkey (
-          id,
-          name,
-          email,
-          avatar_url,
-          bio,
-          location
-        )
-      `)
-      .eq('follower_id', userId)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching following list:', error);
+      .select('*')
+      .eq('follower_id', userId);
+    
+    console.log('Raw followers data:', rawData);
+    console.log('Raw followers error:', rawError);
+    
+    if (rawError) {
+      console.error('Error fetching raw followers data:', rawError);
       return [];
     }
-
-    return data?.map(item => item.profiles) || [];
+    
+    if (!rawData || rawData.length === 0) {
+      console.log('No following relationships found');
+      return [];
+    }
+    
+    // Get the user IDs that this user is following
+    const followingIds = rawData.map(item => item.following_id);
+    console.log('Following IDs:', followingIds);
+    
+    // Fetch the profile data for these users
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, name, email, avatar_url, bio, location')
+      .in('id', followingIds);
+    
+    console.log('Profiles query result:', profiles);
+    console.log('Profiles query error:', profilesError);
+    
+    if (profilesError) {
+      console.error('Error fetching profiles:', profilesError);
+      return [];
+    }
+    
+    console.log('Processed following list:', profiles);
+    return profiles || [];
   } catch (error) {
     console.error('Error getting following list:', error);
     return [];
@@ -203,28 +222,47 @@ export const getFollowingList = async (userId: string): Promise<any[]> => {
 // Get list of users following a user
 export const getFollowersList = async (userId: string): Promise<any[]> => {
   try {
-    const { data, error } = await supabase
+    console.log('Fetching followers list for user:', userId);
+    
+    // First, let's check what data exists in the followers table
+    const { data: rawData, error: rawError } = await supabase
       .from('followers')
-      .select(`
-        follower_id,
-        profiles!followers_follower_id_fkey (
-          id,
-          name,
-          email,
-          avatar_url,
-          bio,
-          location
-        )
-      `)
-      .eq('following_id', userId)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching followers list:', error);
+      .select('*')
+      .eq('following_id', userId);
+    
+    console.log('Raw followers data:', rawData);
+    console.log('Raw followers error:', rawError);
+    
+    if (rawError) {
+      console.error('Error fetching raw followers data:', rawError);
       return [];
     }
-
-    return data?.map(item => item.profiles) || [];
+    
+    if (!rawData || rawData.length === 0) {
+      console.log('No followers found');
+      return [];
+    }
+    
+    // Get the user IDs that are following this user
+    const followerIds = rawData.map(item => item.follower_id);
+    console.log('Follower IDs:', followerIds);
+    
+    // Fetch the profile data for these users
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, name, email, avatar_url, bio, location')
+      .in('id', followerIds);
+    
+    console.log('Profiles query result:', profiles);
+    console.log('Profiles query error:', profilesError);
+    
+    if (profilesError) {
+      console.error('Error fetching profiles:', profilesError);
+      return [];
+    }
+    
+    console.log('Processed followers list:', profiles);
+    return profiles || [];
   } catch (error) {
     console.error('Error getting followers list:', error);
     return [];

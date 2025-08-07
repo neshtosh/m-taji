@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, MapPin, Users, Target, TrendingUp, Heart, Share2, Mail, Phone, FileText, MessageSquare, ShoppingBag, Calendar, Eye, Edit, Trash2, Plus, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { fetchUserBlogPosts, fetchUserMicroblogPosts, fetchUserProducts } from '../lib/userProjects';
+import { fetchUserBlogPosts, fetchUserMicroblogPosts, fetchUserProducts, fetchUserProjects } from '../lib/userProjects';
 import { fetchPublicUserProfile, fetchUserStats } from '../lib/userSearch';
 import { toggleFollow, getUserFollowStats, testFollowersTable, getFollowersList, getFollowingList } from '../lib/followers';
 import { supabase } from '../lib/supabase';
@@ -12,13 +12,14 @@ interface UserContent {
   blogs: any[];
   microblogs: any[];
   products: any[];
+  projects: any[];
 }
 
 const ProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'about' | 'blogs' | 'microblogs' | 'shop'>('about');
-  const [userContent, setUserContent] = useState<UserContent>({ blogs: [], microblogs: [], products: [] });
+  const [activeTab, setActiveTab] = useState<'about' | 'blogs' | 'microblogs' | 'shop' | 'projects'>('about');
+  const [userContent, setUserContent] = useState<UserContent>({ blogs: [], microblogs: [], products: [], projects: [] });
   const [profileUser, setProfileUser] = useState<any>(null);
   const [userStats, setUserStats] = useState<any>(null);
   const [followStats, setFollowStats] = useState<any>(null);
@@ -79,16 +80,18 @@ const ProfilePage: React.FC = () => {
         }
 
         // Fetch user content
-        const [blogs, microblogs, products] = await Promise.all([
+        const [blogs, microblogs, products, projects] = await Promise.all([
           fetchUserBlogPosts(id),
           fetchUserMicroblogPosts(id),
-          fetchUserProducts(id)
+          fetchUserProducts(id),
+          fetchUserProjects(id)
         ]);
 
         setUserContent({
           blogs: blogs || [],
           microblogs: microblogs || [],
-          products: products || []
+          products: products || [],
+          projects: projects || []
         });
       } catch (err) {
         console.error('Error fetching user data:', err);
@@ -257,6 +260,7 @@ const ProfilePage: React.FC = () => {
 
   const tabs = [
     { id: 'about', name: 'About', icon: Users },
+    { id: 'projects', name: 'Projects', icon: Target, count: userContent.projects.length },
     { id: 'blogs', name: 'Blogs', icon: FileText, count: userContent.blogs.length },
     { id: 'microblogs', name: 'Microblogs', icon: MessageSquare, count: userContent.microblogs.length },
     { id: 'shop', name: 'Shop', icon: ShoppingBag, count: userContent.products.length },
@@ -264,11 +268,49 @@ const ProfilePage: React.FC = () => {
 
   const renderAboutTab = () => (
     <div className="space-y-8">
-      {/* Bio Section */}
+      {/* Stats Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
+        className="bg-white rounded-2xl shadow-lg p-6"
+      >
+        <h2 className="text-xl font-bold text-gray-900 mb-4">Impact Statistics</h2>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <button 
+            onClick={handleShowFollowers}
+            className="text-center p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer"
+          >
+            <Users className="w-8 h-8 text-teal-600 mx-auto mb-2" />
+            <div className="text-2xl font-bold text-gray-900">{followStats?.followers_count || 0}</div>
+            <div className="text-gray-600 text-sm">Followers</div>
+          </button>
+          <button 
+            onClick={handleShowFollowing}
+            className="text-center p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer"
+          >
+            <Users className="w-8 h-8 text-teal-600 mx-auto mb-2" />
+            <div className="text-2xl font-bold text-gray-900">{followStats?.following_count || 0}</div>
+            <div className="text-gray-600 text-sm">Following</div>
+          </button>
+          <div className="text-center p-4 bg-gray-50 rounded-xl">
+            <Target className="w-8 h-8 text-teal-600 mx-auto mb-2" />
+            <div className="text-2xl font-bold text-gray-900">{userStats?.projects || 0}</div>
+            <div className="text-gray-600 text-sm">Projects</div>
+          </div>
+          <div className="text-center p-4 bg-gray-50 rounded-xl">
+            <FileText className="w-8 h-8 text-teal-600 mx-auto mb-2" />
+            <div className="text-2xl font-bold text-gray-900">{userStats?.blogs || 0}</div>
+            <div className="text-gray-600 text-sm">Blogs</div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Bio Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.1 }}
         className="bg-white rounded-2xl shadow-lg p-6"
       >
         <h2 className="text-xl font-bold text-gray-900 mb-4">About</h2>
@@ -302,44 +344,6 @@ const ProfilePage: React.FC = () => {
         <div className="bg-teal-50 rounded-xl p-4 border border-teal-200">
           <h3 className="font-semibold text-teal-800 mb-2">Impact</h3>
           <p className="text-teal-700">Empowering communities through education, healthcare, and sustainable development initiatives.</p>
-        </div>
-      </motion.div>
-
-      {/* Stats Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.1 }}
-        className="bg-white rounded-2xl shadow-lg p-6"
-      >
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Impact Statistics</h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <button 
-            onClick={handleShowFollowers}
-            className="text-center p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer"
-          >
-            <Users className="w-8 h-8 text-teal-600 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-900">{followStats?.followers_count || 0}</div>
-            <div className="text-gray-600 text-sm">Followers</div>
-          </button>
-          <button 
-            onClick={handleShowFollowing}
-            className="text-center p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer"
-          >
-            <Users className="w-8 h-8 text-teal-600 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-900">{followStats?.following_count || 0}</div>
-            <div className="text-gray-600 text-sm">Following</div>
-          </button>
-          <div className="text-center p-4 bg-gray-50 rounded-xl">
-            <Target className="w-8 h-8 text-teal-600 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-900">{userStats?.projects || 0}</div>
-            <div className="text-gray-600 text-sm">Projects</div>
-          </div>
-          <div className="text-center p-4 bg-gray-50 rounded-xl">
-            <FileText className="w-8 h-8 text-teal-600 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-900">{userStats?.blogs || 0}</div>
-            <div className="text-gray-600 text-sm">Blogs</div>
-          </div>
         </div>
       </motion.div>
 
@@ -497,6 +501,66 @@ const ProfilePage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-bold text-teal-600">KSh {product.price.toLocaleString()}</span>
                   <span className="text-sm text-gray-500">{product.stockQuantity} in stock</span>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  const renderProjectsTab = () => (
+    <div className="space-y-6">
+      {userContent.projects.length === 0 ? (
+        <div className="text-center py-12">
+          <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">No Projects Yet</h3>
+          <p className="text-gray-600">This changemaker hasn't created any projects yet.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {userContent.projects.map((project) => (
+            <motion.div
+              key={project.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="bg-white rounded-2xl shadow-lg overflow-hidden"
+            >
+              <div className="aspect-video bg-gray-200 flex items-center justify-center">
+                {project.image_url ? (
+                  <img
+                    src={project.image_url}
+                    alt={project.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Target className="h-12 w-12 text-gray-400" />
+                )}
+              </div>
+              <div className="p-6">
+                <h3 className="font-semibold text-gray-900 mb-2">{project.title}</h3>
+                <p className="text-gray-600 text-sm mb-3 line-clamp-2">{project.description}</p>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm bg-teal-100 text-teal-800 px-2 py-1 rounded-full">
+                    {project.category}
+                  </span>
+                  <span className="text-sm text-gray-500">{project.status}</span>
+                </div>
+                {project.impact_description && (
+                  <p className="text-sm text-teal-600 mb-3">{project.impact_description}</p>
+                )}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-500">
+                    {project.completion_date ? `Completed: ${project.completion_date}` : 'In Progress'}
+                  </span>
+                  <Link 
+                    to={`/project/${project.id}`}
+                    className="text-sm text-teal-600 hover:text-teal-700 font-medium"
+                  >
+                    View Details
+                  </Link>
                 </div>
               </div>
             </motion.div>
@@ -672,6 +736,7 @@ const ProfilePage: React.FC = () => {
               transition={{ duration: 0.6 }}
             >
               {activeTab === 'about' && renderAboutTab()}
+              {activeTab === 'projects' && renderProjectsTab()}
               {activeTab === 'blogs' && renderBlogsTab()}
               {activeTab === 'microblogs' && renderMicroblogsTab()}
               {activeTab === 'shop' && renderShopTab()}
