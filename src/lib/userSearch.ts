@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { cache, CACHE_KEYS } from './cache';
 
 export interface PublicUserProfile {
   id: string;
@@ -20,9 +21,16 @@ export interface PublicUserProfile {
   fundsRaised?: string;
 }
 
-// Fetch all public user profiles
+// Fetch all public user profiles with optimized batch queries and caching
 export const fetchAllPublicUsers = async (): Promise<PublicUserProfile[]> => {
   try {
+    // Check cache first
+    const cachedData = cache.get(CACHE_KEYS.ALL_USERS);
+    if (cachedData) {
+      console.log('Using cached users data');
+      return cachedData;
+    }
+
     console.log('Fetching all public users...');
     
     const { data, error } = await supabase
@@ -38,10 +46,132 @@ export const fetchAllPublicUsers = async (): Promise<PublicUserProfile[]> => {
       return [];
     }
 
-    return data || [];
+    const users = data || [];
+    
+    // Cache the results for 2 minutes
+    cache.set(CACHE_KEYS.ALL_USERS, users, 2 * 60 * 1000);
+    
+    return users;
   } catch (error) {
     console.error('Error fetching public users:', error);
     return [];
+  }
+};
+
+// Optimized function to fetch all user stats in batch with caching
+export const fetchAllUserStats = async (userIds: string[]) => {
+  try {
+    if (userIds.length === 0) return {};
+
+    // Create cache key based on user IDs
+    const cacheKey = `${CACHE_KEYS.USER_STATS}_${userIds.sort().join('_')}`;
+    
+    // Check cache first
+    const cachedData = cache.get(cacheKey);
+    if (cachedData) {
+      console.log('Using cached user stats');
+      return cachedData;
+    }
+
+    // Batch query for projects
+    const { data: projectsData } = await supabase
+      .from('user_projects')
+      .select('user_id, id')
+      .in('user_id', userIds);
+
+    // Batch query for blog posts
+    const { data: blogsData } = await supabase
+      .from('blog_posts')
+      .select('author_id, id')
+      .in('author_id', userIds)
+      .eq('is_published', true);
+
+    // Batch query for microblog posts
+    const { data: microblogsData } = await supabase
+      .from('microblog_posts')
+      .select('author_id, id')
+      .in('author_id', userIds);
+
+    // Batch query for followers
+    const { data: followersData } = await supabase
+      .from('followers')
+      .select('following_id, follower_id')
+      .in('following_id', userIds);
+
+    // Process the data
+    const stats: { [key: string]: any } = {};
+    
+    userIds.forEach(userId => {
+      const projects = projectsData?.filter(p => p.user_id === userId) || [];
+      const blogs = blogsData?.filter(b => b.author_id === userId) || [];
+      const microblogs = microblogsData?.filter(m => m.author_id === userId) || [];
+      const followers = followersData?.filter(f => f.following_id === userId) || [];
+
+      stats[userId] = {
+        projects: projects.length,
+        blogs: blogs.length,
+        microblogs: microblogs.length,
+        followers: followers.length
+      };
+    });
+
+    // Cache the results for 1 minute
+    cache.set(cacheKey, stats, 60 * 1000);
+    
+    return stats;
+  } catch (error) {
+    console.error('Error fetching user stats:', error);
+    return {};
+  }
+};
+
+// Optimized function to fetch all follow stats in batch
+export const fetchAllFollowStats = async (userIds: string[], currentUserId?: string) => {
+  try {
+    if (userIds.length === 0) return {};
+
+    // Batch query for followers count
+    const { data: followersData } = await supabase
+      .from('followers')
+      .select('following_id, follower_id')
+      .in('following_id', userIds);
+
+    // Batch query for following count
+    const { data: followingData } = await supabase
+      .from('followers')
+      .select('follower_id, following_id')
+      .in('follower_id', userIds);
+
+    // Batch query for current user's following status
+    let currentUserFollowing: any[] = [];
+    if (currentUserId) {
+      const { data } = await supabase
+        .from('followers')
+        .select('following_id')
+        .eq('follower_id', currentUserId)
+        .in('following_id', userIds);
+      currentUserFollowing = data || [];
+    }
+
+    // Process the data
+    const followStats: { [key: string]: any } = {};
+    
+    userIds.forEach(userId => {
+      const followers = followersData?.filter(f => f.following_id === userId) || [];
+      const following = followingData?.filter(f => f.follower_id === userId) || [];
+      const isFollowing = currentUserFollowing.some(f => f.following_id === userId);
+
+      followStats[userId] = {
+        followers_count: followers.length,
+        following_count: following.length,
+        is_following: isFollowing
+      };
+    });
+
+    return followStats;
+  } catch (error) {
+    console.error('Error fetching follow stats:', error);
+    return {};
   }
 };
 
@@ -92,72 +222,50 @@ export const fetchPublicUserProfile = async (userId: string): Promise<PublicUser
   }
 };
 
-// Get user's stats (projects, blogs, etc.)
+// Get user's stats (projects, blogs, etc.) - keeping for backward compatibility
 export const fetchUserStats = async (userId: string) => {
   try {
     const [projects, blogs, microblogs, followers] = await Promise.all([
       supabase.from('user_projects').select('id').eq('user_id', userId),
       supabase.from('blog_posts').select('id').eq('author_id', userId).eq('is_published', true),
-      supabase.from('microblog_posts').select('id').eq('author_id', userId).eq('is_published', true),
+      supabase.from('microblog_posts').select('id').eq('author_id', userId),
       supabase.from('followers').select('id').eq('following_id', userId)
     ]);
 
-    const stats = {
+    return {
       projects: projects.data?.length || 0,
       blogs: blogs.data?.length || 0,
       microblogs: microblogs.data?.length || 0,
       followers: followers.data?.length || 0
     };
-
-    return stats;
   } catch (error) {
     console.error('Error fetching user stats:', error);
-    return { projects: 0, blogs: 0, microblogs: 0, followers: 0 };
+    return {
+      projects: 0,
+      blogs: 0,
+      microblogs: 0,
+      followers: 0
+    };
   }
-}; 
+};
 
-// Test function to check database contents
+// Test database connection
 export const testDatabaseConnection = async () => {
   try {
-    // Test 1: Check if we can access profiles table at all
-    const { data: allData, error: allError } = await supabase
+    const { data, error } = await supabase
       .from('profiles')
-      .select('*');
-    
-    // Test 2: Check table structure
-    const { data: structureData, error: structureError } = await supabase
-      .from('profiles')
-      .select('id, name, email')
+      .select('id')
       .limit(1);
-    
-    // Test 3: Check user_projects table
-    const { data: projectsData, error: projectsError } = await supabase
-      .from('user_projects')
-      .select('id, user_id, title')
-      .limit(5);
-    
-    // Test 4: Check blog_posts table
-    const { data: blogsData, error: blogsError } = await supabase
-      .from('blog_posts')
-      .select('id, author_id, title, is_published')
-      .limit(5);
-    
-    // Test 5: Check microblog_posts table
-    const { data: microblogsData, error: microblogsError } = await supabase
-      .from('microblog_posts')
-      .select('id, author_id, title, is_published')
-      .limit(5);
-    
-    return { 
-      allData, 
-      structureData, 
-      projectsData, 
-      blogsData, 
-      microblogsData,
-      errors: { allError, structureError, projectsError, blogsError, microblogsError }
-    };
+
+    if (error) {
+      console.error('Database connection test failed:', error);
+      return false;
+    }
+
+    console.log('Database connection test successful');
+    return true;
   } catch (error) {
-    console.error('Database test error:', error);
-    return null;
+    console.error('Database connection test failed:', error);
+    return false;
   }
 }; 

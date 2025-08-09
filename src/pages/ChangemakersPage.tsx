@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Heart, Share2, Users, Target, TrendingUp, Lightbulb, Search, X } from 'lucide-react';
-import { fetchAllPublicUsers, searchUsers, fetchUserStats, PublicUserProfile, testDatabaseConnection } from '../lib/userSearch';
-import { toggleFollow, getUserFollowStats, ensureFollowersTable, getFollowersList, getFollowingList } from '../lib/followers';
+import { fetchAllPublicUsers, searchUsers, fetchAllUserStats, fetchAllFollowStats, PublicUserProfile, testDatabaseConnection } from '../lib/userSearch';
+import { toggleFollow, ensureFollowersTable, getFollowersList, getFollowingList } from '../lib/followers';
 import { useAuth } from '../context/AuthContext';
 
 const ChangemakersPage: React.FC = () => {
@@ -34,50 +34,49 @@ const ChangemakersPage: React.FC = () => {
     }
   }, [searchParams]);
 
-  // Fetch all changemakers and their stats on component mount
+  // Optimized data fetching with batch queries
   useEffect(() => {
     const fetchChangemakers = async () => {
       try {
         setLoading(true);
         
         // Test database connection first
-        await testDatabaseConnection();
+        const connectionTest = await testDatabaseConnection();
+        if (!connectionTest) {
+          console.error('Database connection failed');
+          return;
+        }
         
+        // Fetch all users
         const users = await fetchAllPublicUsers();
         setChangemakers(users);
         setFilteredChangemakers(users);
 
-        // Fetch stats for each user
-        const statsPromises = users.map(async (user) => {
-          const stats = await fetchUserStats(user.id);
-          return { [user.id]: stats };
-        });
-
-        // Fetch follow stats for each user
-        const followStatsPromises = users.map(async (user) => {
-          const followStats = await getUserFollowStats(user.id, user?.id);
-          return { [user.id]: followStats };
-        });
-
-        const [statsResults, followStatsResults] = await Promise.all([
-          Promise.all(statsPromises),
-          Promise.all(followStatsPromises)
-        ]);
-        
-        const combinedStats = statsResults.reduce((acc, stat) => ({ ...acc, ...stat }), {});
-        const combinedFollowStats = followStatsResults.reduce((acc, stat) => ({ ...acc, ...stat }), {});
-        
-        setUserStats(combinedStats);
-        setFollowStats(combinedFollowStats);
+        if (users.length > 0) {
+          // Extract user IDs for batch queries
+          const userIds = users.map(user => user.id);
+          
+          // Fetch all stats and follow stats in parallel using batch queries
+          const [statsResults, followStatsResults] = await Promise.all([
+            fetchAllUserStats(userIds),
+            fetchAllFollowStats(userIds, user?.id)
+          ]);
+          
+          setUserStats(statsResults);
+          setFollowStats(followStatsResults);
+        }
       } catch (error) {
         console.error('Error fetching changemakers:', error);
+        // Set empty arrays to prevent infinite loading
+        setChangemakers([]);
+        setFilteredChangemakers([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchChangemakers();
-  }, []);
+  }, [user?.id]);
 
   // Filter changemakers based on search query
   useEffect(() => {
@@ -235,20 +234,44 @@ const ChangemakersPage: React.FC = () => {
 
   // Handle explore changemakers
   const handleExploreChangemakers = () => {
-    // Scroll to the featured changemakers section
-    const element = document.getElementById('featured-changemakers');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
+    navigate('/dashboard');
   };
+
+  // Loading skeleton component
+  const LoadingSkeleton = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="bg-white rounded-lg shadow-md p-6 animate-pulse">
+          <div className="flex items-center space-x-4 mb-4">
+            <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+            <div className="flex-1">
+              <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div className="h-3 bg-gray-200 rounded"></div>
+            <div className="h-3 bg-gray-200 rounded w-5/6"></div>
+          </div>
+          <div className="flex justify-between mt-4">
+            <div className="h-8 bg-gray-200 rounded w-20"></div>
+            <div className="h-8 bg-gray-200 rounded w-20"></div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-16 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading changemakers...</p>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-16">
+        <div className="container mx-auto px-4 py-16">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl md:text-6xl font-bold font-bold-rounded mb-6 text-primary">Our Impact</h1>
+            <p className="text-xl text-gray-600 dark:text-gray-400">Transforming communities through youth innovation</p>
+          </div>
+          <LoadingSkeleton />
         </div>
       </div>
     );
