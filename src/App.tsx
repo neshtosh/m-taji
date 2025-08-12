@@ -23,6 +23,7 @@ import CampaignDetailPage from './pages/CampaignDetailPage';
 import SettingsPage from './pages/SettingsPage';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import AuthDebugger from './components/ui/AuthDebugger';
 
 function App() {
   return (
@@ -30,122 +31,122 @@ function App() {
       <AuthProvider>
         <ThemeProvider>
           <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-          <AnimatePresence mode="wait">
-            <Routes>
-              <Route path="/admin/login" element={<AdminLogin />} />
-              <Route path="/admin/*" element={<AdminDashboard />} />
-              <Route path="/signin" element={<SignInPage />} />
-              <Route path="/signup" element={<SignUpPage />} />
-              <Route path="/dashboard" element={
-                <PrivateRoute>
-                  <DashboardPage />
-                </PrivateRoute>
-              } />
-              <Route path="/project/:id" element={
-                <PrivateRoute>
-                  <ProjectDetailPage />
-                </PrivateRoute>
-              } />
-              <Route path="/campaign/:id" element={
-                <>
-                  <Navbar />
-                  <main>
-                    <CampaignDetailPage />
-                  </main>
-                  <Footer />
-                  <FloatingDonateButton />
-                </>
-              } />
-              <Route path="/settings" element={
-                <PrivateRoute>
-                  <SettingsPage />
-                </PrivateRoute>
-              } />
-              <Route path="/" element={
-                <>
-                  <Navbar />
-                  <main>
-                    <HomePage />
-                  </main>
-                  <Footer />
-                  <FloatingDonateButton />
-                </>
-              } />
-              <Route path="/changemakers" element={
-                <>
-                  <Navbar />
-                  <main>
-                    <ChangemakersPage />
-                  </main>
-                  <Footer />
-                  <FloatingDonateButton />
-                </>
-              } />
-              <Route path="/stories" element={
-                <>
-                  <Navbar />
-                  <main>
-                    <BlogPage />
-                  </main>
-                  <Footer />
-                  <FloatingDonateButton />
-                </>
-              } />
-              <Route path="/about" element={
-                <>
-                  <Navbar />
-                  <main>
-                    <AboutPage />
-                  </main>
-                  <Footer />
-                  <FloatingDonateButton />
-                </>
-              } />
-              <Route path="/contact" element={
-                <>
-                  <Navbar />
-                  <main>
-                    <ContactPage />
-                  </main>
-                  <Footer />
-                  <FloatingDonateButton />
-                </>
-              } />
-              <Route path="/profile/:id" element={
-                <>
-                  <Navbar />
-                  <main>
-                    <ProfilePage />
-                  </main>
-                  <Footer />
-                  <FloatingDonateButton />
-                </>
-              } />
-              <Route path="/blog" element={
-                <>
-                  <Navbar />
-                  <main>
-                    <BlogPage />
-                  </main>
-                  <Footer />
-                  <FloatingDonateButton />
-                </>
-              } />
-              <Route path="/blogs" element={
-                <>
-                  <Navbar />
-                  <main>
-                    <BlogPage />
-                  </main>
-                  <Footer />
-                  <FloatingDonateButton />
-                </>
-              } />
-              <Route path="/blog/:id" element={
-                <>
-                  <Navbar />
-                  <main>
-                    <BlogPostPage />
+            <AnimatePresence mode="wait">
+              <Routes>
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route path="/admin/*" element={<AdminDashboard />} />
+                <Route path="/signin" element={<SignInPage />} />
+                <Route path="/signup" element={<SignUpPage />} />
+                <Route path="/dashboard" element={
+                  <PrivateRoute>
+                    <DashboardPage />
+                  </PrivateRoute>
+                } />
+                <Route path="/project/:id" element={
+                  <PrivateRoute>
+                    <ProjectDetailPage />
+                  </PrivateRoute>
+                } />
+                <Route path="/campaign/:id" element={
+                  <>
+                    <Navbar />
+                    <main>
+                      <CampaignDetailPage />
+                    </main>
+                    <Footer />
+                    <FloatingDonateButton />
+                  </>
+                } />
+                <Route path="/settings" element={
+                  <PrivateRoute>
+                    <SettingsPage />
+                  </PrivateRoute>
+                } />
+                <Route path="/" element={
+                  <>
+                    <Navbar />
+                    <main>
+                      <HomePage />
+                    </main>
+                    <Footer />
+                    <FloatingDonateButton />
+                  </>
+                } />
+                <Route path="/changemakers" element={
+                  <>
+                    <Navbar />
+                    <main>
+                      <ChangemakersPage />
+                    </main>
+                    <Footer />
+                    <FloatingDonateButton />
+                  </>
+                } />
+                <Route path="/stories" element={
+                  <>
+                    <Navbar />
+                    <main>
+                      <BlogPage />
+                    </main>
+                    <Footer />
+                    <FloatingDonateButton />
+                  </>
+                } />
+                <Route path="/about" element={
+                  <>
+                    <Navbar />
+                    <main>
+                      <AboutPage />
+                    </main>
+                    <Footer />
+                    <FloatingDonateButton />
+                  </>
+                } />
+                <Route path="/contact" element={
+                  <>
+                    <Navbar />
+                    <main>
+                      <ContactPage />
+                    </main>
+                    <Footer />
+                    <FloatingDonateButton />
+                  </>
+                } />
+                <Route path="/profile/:id" element={
+                  <>
+                    <Navbar />
+                    <main>
+                      <ProfilePage />
+                    </main>
+                    <Footer />
+                    <FloatingDonateButton />
+                  </>
+                } />
+                <Route path="/blog" element={
+                  <>
+                    <Navbar />
+                    <main>
+                      <BlogPage />
+                    </main>
+                    <Footer />
+                    <FloatingDonateButton />
+                  </>
+                } />
+                <Route path="/blogs" element={
+                  <>
+                    <Navbar />
+                    <main>
+                      <BlogPage />
+                    </main>
+                    <Footer />
+                    <FloatingDonateButton />
+                  </>
+                } />
+                <Route path="/blog/:id" element={
+                  <>
+                    <Navbar />
+                    <main>
+                      <BlogPostPage />
                   </main>
                   <Footer />
                   <FloatingDonateButton />
@@ -153,6 +154,7 @@ function App() {
               } />
             </Routes>
           </AnimatePresence>
+          <AuthDebugger />
         </div>
         </ThemeProvider>
       </AuthProvider>

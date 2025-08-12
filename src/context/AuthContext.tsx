@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
-import { supabase, restoreSession, validateAndRefreshSession } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
+import { authUtils, tabSync, userProfileUtils } from '../lib/auth';
 
 interface User {
   id: string;
@@ -17,7 +18,6 @@ interface AuthContextType {
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   loading: boolean;
-  refreshSession: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -38,11 +38,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-
-  // Create broadcast channel for cross-tab communication
-  const authChannel = typeof BroadcastChannel !== 'undefined' 
-    ? new BroadcastChannel('auth-sync') 
-    : null;
 
   // Fetch user profile from database
   const fetchUserProfile = async (supabaseUser: SupabaseUser): Promise<User | null> => {
@@ -68,16 +63,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return null;
       }
 
-      return {
+      const userProfile = {
         id: data.id,
         email: data.email,
         name: data.name,
         role: data.role
       };
+
+      // Store the profile in localStorage for future use
+      userProfileUtils.storeUserProfile(userProfile);
+
+      return userProfile;
     } catch (error) {
       console.error('Error fetching user profile:', error);
       return null;
     }
+  };
+
+  // Get user profile with caching
+  const getUserProfile = async (supabaseUser: SupabaseUser): Promise<User | null> => {
+    // First, try to get from localStorage cache
+    const cachedProfile = userProfileUtils.getStoredUserProfile();
+    
+    if (cachedProfile && cachedProfile.id === supabaseUser.id) {
+      console.log('Using cached user profile:', cachedProfile.id);
+      return cachedProfile;
+    }
+
+    // If not in cache or cache is invalid, fetch from database
+    console.log('Fetching user profile from database:', supabaseUser.id);
+    return await fetchUserProfile(supabaseUser);
   };
 
   // Create user profile in database (fallback method)
@@ -98,22 +113,96 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // If profile already exists (created by trigger), try to fetch it
         if (error.code === '23505') { // Unique violation
           console.log('Profile already exists, fetching...');
-          return await fetchUserProfile(supabaseUser);
+          return await getUserProfile(supabaseUser);
         }
         console.error('Error creating user profile:', error);
         return null;
       }
 
-      return {
+      const userProfile = {
         id: data.id,
         email: data.email,
         name: data.name,
         role: data.role
       };
+
+      // Store the profile in localStorage
+      userProfileUtils.storeUserProfile(userProfile);
+
+      return userProfile;
     } catch (error) {
       console.error('Error creating user profile:', error);
       return null;
     }
+  };
+
+  // Handle session restoration and user profile fetching
+  const handleSessionChange = async (session: Session | null, event: string) => {
+    console.log('Auth state change:', event, session?.user?.id);
+    setLoading(true);
+    setSession(session);
+    
+    // Broadcast the auth change to other tabs
+    tabSync.broadcastAuthChange(event, session);
+    
+    if (session?.user) {
+      try {
+        // Check if session is valid
+        if (!authUtils.isSessionValid(session)) {
+          console.log('Session is invalid or expired, attempting to refresh...');
+          const refreshedSession = await authUtils.refreshSession();
+          if (refreshedSession) {
+            setSession(refreshedSession);
+            session = refreshedSession;
+          } else {
+            console.log('Failed to refresh session, clearing auth state');
+            setUser(null);
+            userProfileUtils.clearUserProfile();
+            setLoading(false);
+            return;
+          }
+        }
+
+        // Get user profile with caching
+        let userProfile: User | null = null;
+        let attempts = 0;
+        const maxAttempts = event === 'SIGNED_IN' ? 10 : 3; // More attempts for new sign-ins
+        
+        while (!userProfile && attempts < maxAttempts) {
+          if (attempts > 0) {
+            // Progressive delay: 500ms, 1000ms, 1500ms, etc.
+            const delay = event === 'SIGNED_IN' ? 500 + (attempts - 1) * 500 : 1000 * attempts;
+            await new Promise(resolve => setTimeout(resolve, delay));
+          }
+          
+          userProfile = await getUserProfile(session.user);
+          attempts++;
+          
+          if (!userProfile && attempts < maxAttempts) {
+            console.log(`Profile not found, attempt ${attempts}/${maxAttempts}, retrying...`);
+          }
+        }
+        
+        if (userProfile) {
+          console.log('Profile successfully fetched:', userProfile);
+          setUser(userProfile);
+        } else {
+          console.error('Failed to fetch user profile after all attempts');
+          setUser(null);
+          userProfileUtils.clearUserProfile();
+        }
+      } catch (error) {
+        console.error('Error handling session change:', error);
+        setUser(null);
+        userProfileUtils.clearUserProfile();
+      }
+    } else {
+      // No session, clear user and cache
+      setUser(null);
+      userProfileUtils.clearUserProfile();
+    }
+    
+    setLoading(false);
   };
 
   const register = async (name: string, email: string, password: string): Promise<boolean> => {
@@ -170,8 +259,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       if (data.user) {
-        // Fetch user profile from database
-        const userProfile = await fetchUserProfile(data.user);
+        // Get user profile with caching
+        const userProfile = await getUserProfile(data.user);
         if (userProfile) {
           setUser(userProfile);
           return true;
@@ -212,28 +301,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await supabase.auth.signOut();
       setUser(null);
       setSession(null);
+      userProfileUtils.clearUserProfile();
+      console.log('User logged out successfully');
     } catch (error) {
       console.error('Logout error:', error);
-    }
-  };
-
-  const refreshSession = async (): Promise<void> => {
-    try {
-      setLoading(true);
-      const newSession = await restoreSession();
-      setSession(newSession);
-      if (newSession?.user) {
-        const userProfile = await fetchUserProfile(newSession.user);
-        setUser(userProfile);
-      } else {
-        setUser(null);
-      }
-    } catch (error) {
-      console.error('Error refreshing session:', error);
-      setUser(null);
-      setSession(null);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -241,165 +312,67 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setLoading(true);
-        setSession(session);
-        
-        // Broadcast auth state change to other tabs
-        if (authChannel) {
-          authChannel.postMessage({
-            type: 'AUTH_STATE_CHANGE',
-            event,
-            session: session ? { 
-              access_token: session.access_token,
-              refresh_token: session.refresh_token,
-              expires_at: session.expires_at,
-              user: session.user ? {
-                id: session.user.id,
-                email: session.user.email
-              } : null
-            } : null
-          });
-        }
-        
-        if (event === 'SIGNED_IN' && session?.user) {
-          // For new registrations, the profile might not be immediately available
-          // Use retry mechanism with longer delays for registration
-          let userProfile: User | null = null;
-          let attempts = 0;
-          const maxAttempts = 10; // More attempts for registration
-          
-          while (!userProfile && attempts < maxAttempts) {
-            if (attempts > 0) {
-              // Longer delays for registration: 500ms, 1000ms, 1500ms, etc.
-              await new Promise(resolve => setTimeout(resolve, 500 + (attempts - 1) * 500));
-            }
-            
-            userProfile = await fetchUserProfile(session.user);
-            attempts++;
-            
-            if (!userProfile && attempts < maxAttempts) {
-              console.log(`Profile not found, attempt ${attempts}/${maxAttempts}, retrying...`);
-            }
-          }
-          
-          if (userProfile) {
-            console.log('Profile successfully fetched:', userProfile);
-            setUser(userProfile);
-          } else {
-            console.error('Failed to fetch user profile after all attempts');
-            setUser(null);
-          }
-        } else if (event === 'SIGNED_OUT') {
-          setUser(null);
-        }
-        
-        setLoading(false);
+        await handleSessionChange(session, event);
       }
     );
 
-    // Listen for auth state changes from other tabs
-    const handleAuthMessage = async (event: MessageEvent) => {
-      if (event.data.type === 'AUTH_STATE_CHANGE') {
-        console.log('Received auth state change from another tab:', event.data.event);
-        
-        if (event.data.event === 'SIGNED_IN' && event.data.session?.user) {
-          // Refresh session and user profile
-          const session = await restoreSession();
-          setSession(session);
-          if (session?.user) {
-            const userProfile = await fetchUserProfile(session.user);
-            setUser(userProfile);
-          }
-        } else if (event.data.event === 'SIGNED_OUT') {
-          setUser(null);
-          setSession(null);
-        }
-      }
-    };
-
-    if (authChannel) {
-      authChannel.addEventListener('message', handleAuthMessage);
-    }
-
-    // Get initial session
+    // Get initial session - this will trigger INITIAL_SESSION event if session exists
     const getInitialSession = async () => {
       try {
-        // Use the utility function for better session restoration
-        const session = await restoreSession();
-        setSession(session);
-        if (session?.user) {
-          // For existing sessions, profile should already exist
-          // But add retry mechanism in case of temporary issues
-          let userProfile: User | null = null;
-          let attempts = 0;
-          const maxAttempts = 3;
-          
-          while (!userProfile && attempts < maxAttempts) {
-            if (attempts > 0) {
-              await new Promise(resolve => setTimeout(resolve, 1000));
-            }
-            
-            userProfile = await fetchUserProfile(session.user);
-            attempts++;
-            
-            if (!userProfile && attempts < maxAttempts) {
-              console.log(`Profile not found on attempt ${attempts}/${maxAttempts}, retrying...`);
-            }
-          }
-          
-          setUser(userProfile);
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log('Initial session check:', session?.user?.id);
+        
+        if (session) {
+          // Handle initial session restoration
+          await handleSessionChange(session, 'INITIAL_SESSION');
+        } else {
+          setLoading(false);
         }
       } catch (error) {
         console.error('Error getting initial session:', error);
-      } finally {
         setLoading(false);
-      }
-    };
-
-    // Validate and refresh session periodically
-    const validateSession = async () => {
-      try {
-        const newSession = await validateAndRefreshSession();
-        if (newSession && newSession !== session) {
-          setSession(newSession);
-        }
-      } catch (error) {
-        console.error('Error validating session:', error);
       }
     };
 
     getInitialSession();
 
-    // Set up periodic session validation (every 5 minutes)
-    const validationInterval = setInterval(validateSession, 5 * 60 * 1000);
+    return () => subscription.unsubscribe();
+  }, []);
 
-    // Listen for storage changes to sync auth state across tabs
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key && e.key.includes('supabase')) {
-        // Refresh session when storage changes
-        getInitialSession();
+  // Listen for cross-tab auth state changes
+  useEffect(() => {
+    const cleanup = tabSync.listenForAuthChanges(async (event, sessionData) => {
+      console.log('Received auth change from another tab:', event);
+      
+      // Only handle if we don't have a session or if the session is different
+      if (!session || (sessionData && session.user.id !== sessionData.user?.id)) {
+        // Get the current session from Supabase
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        if (currentSession) {
+          await handleSessionChange(currentSession, 'TAB_SYNC');
+        }
       }
-    };
+    });
 
-    // Also listen for focus events to refresh session when tab becomes active
-    const handleFocus = () => {
-      getInitialSession();
-      validateSession();
+    return cleanup;
+  }, [session]);
+
+  // Listen for storage events to sync auth state across tabs
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'm-taji-auth-token' && e.newValue !== e.oldValue) {
+        console.log('Auth token changed in another tab, refreshing session...');
+        // Refresh the session to sync with other tabs
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (session !== null) {
+            handleSessionChange(session, 'STORAGE_SYNC');
+          }
+        });
+      }
     };
 
     window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('focus', handleFocus);
-
-    return () => {
-      subscription.unsubscribe();
-      clearInterval(validationInterval);
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('focus', handleFocus);
-      if (authChannel) {
-        authChannel.removeEventListener('message', handleAuthMessage);
-        authChannel.close();
-      }
-    };
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const value = {
@@ -409,9 +382,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     resendConfirmationEmail,
     logout,
     isAuthenticated: !!session?.user,
-    loading,
-    refreshSession
+    loading
   };
+
+  // Debug logging for development
+  if (import.meta.env.DEV) {
+    console.log('AuthContext state:', {
+      user: user?.id,
+      session: session?.user?.id,
+      isAuthenticated: !!session?.user,
+      loading,
+      sessionValid: session ? authUtils.isSessionValid(session) : false,
+      cacheInfo: userProfileUtils.getCacheInfo()
+    });
+  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
