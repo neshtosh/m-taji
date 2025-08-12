@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase';
+import { supabase, restoreSession, validateAndRefreshSession } from '../lib/supabase';
 
 interface User {
   id: string;
@@ -17,6 +17,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   loading: boolean;
+  refreshSession: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -37,6 +38,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Create broadcast channel for cross-tab communication
+  const authChannel = typeof BroadcastChannel !== 'undefined' 
+    ? new BroadcastChannel('auth-sync') 
+    : null;
 
   // Fetch user profile from database
   const fetchUserProfile = async (supabaseUser: SupabaseUser): Promise<User | null> => {
@@ -211,12 +217,49 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const refreshSession = async (): Promise<void> => {
+    try {
+      setLoading(true);
+      const newSession = await restoreSession();
+      setSession(newSession);
+      if (newSession?.user) {
+        const userProfile = await fetchUserProfile(newSession.user);
+        setUser(userProfile);
+      } else {
+        setUser(null);
+      }
+    } catch (error) {
+      console.error('Error refreshing session:', error);
+      setUser(null);
+      setSession(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Listen for auth state changes
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setLoading(true);
         setSession(session);
+        
+        // Broadcast auth state change to other tabs
+        if (authChannel) {
+          authChannel.postMessage({
+            type: 'AUTH_STATE_CHANGE',
+            event,
+            session: session ? { 
+              access_token: session.access_token,
+              refresh_token: session.refresh_token,
+              expires_at: session.expires_at,
+              user: session.user ? {
+                id: session.user.id,
+                email: session.user.email
+              } : null
+            } : null
+          });
+        }
         
         if (event === 'SIGNED_IN' && session?.user) {
           // For new registrations, the profile might not be immediately available
@@ -254,21 +297,109 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     );
 
+    // Listen for auth state changes from other tabs
+    const handleAuthMessage = async (event: MessageEvent) => {
+      if (event.data.type === 'AUTH_STATE_CHANGE') {
+        console.log('Received auth state change from another tab:', event.data.event);
+        
+        if (event.data.event === 'SIGNED_IN' && event.data.session?.user) {
+          // Refresh session and user profile
+          const session = await restoreSession();
+          setSession(session);
+          if (session?.user) {
+            const userProfile = await fetchUserProfile(session.user);
+            setUser(userProfile);
+          }
+        } else if (event.data.event === 'SIGNED_OUT') {
+          setUser(null);
+          setSession(null);
+        }
+      }
+    };
+
+    if (authChannel) {
+      authChannel.addEventListener('message', handleAuthMessage);
+    }
+
     // Get initial session
     const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      if (session?.user) {
-        // For existing sessions, profile should already exist
-        const userProfile = await fetchUserProfile(session.user);
-        setUser(userProfile);
+      try {
+        // Use the utility function for better session restoration
+        const session = await restoreSession();
+        setSession(session);
+        if (session?.user) {
+          // For existing sessions, profile should already exist
+          // But add retry mechanism in case of temporary issues
+          let userProfile: User | null = null;
+          let attempts = 0;
+          const maxAttempts = 3;
+          
+          while (!userProfile && attempts < maxAttempts) {
+            if (attempts > 0) {
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+            
+            userProfile = await fetchUserProfile(session.user);
+            attempts++;
+            
+            if (!userProfile && attempts < maxAttempts) {
+              console.log(`Profile not found on attempt ${attempts}/${maxAttempts}, retrying...`);
+            }
+          }
+          
+          setUser(userProfile);
+        }
+      } catch (error) {
+        console.error('Error getting initial session:', error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
+    };
+
+    // Validate and refresh session periodically
+    const validateSession = async () => {
+      try {
+        const newSession = await validateAndRefreshSession();
+        if (newSession && newSession !== session) {
+          setSession(newSession);
+        }
+      } catch (error) {
+        console.error('Error validating session:', error);
+      }
     };
 
     getInitialSession();
 
-    return () => subscription.unsubscribe();
+    // Set up periodic session validation (every 5 minutes)
+    const validationInterval = setInterval(validateSession, 5 * 60 * 1000);
+
+    // Listen for storage changes to sync auth state across tabs
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key && e.key.includes('supabase')) {
+        // Refresh session when storage changes
+        getInitialSession();
+      }
+    };
+
+    // Also listen for focus events to refresh session when tab becomes active
+    const handleFocus = () => {
+      getInitialSession();
+      validateSession();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      subscription.unsubscribe();
+      clearInterval(validationInterval);
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('focus', handleFocus);
+      if (authChannel) {
+        authChannel.removeEventListener('message', handleAuthMessage);
+        authChannel.close();
+      }
+    };
   }, []);
 
   const value = {
@@ -278,7 +409,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     resendConfirmationEmail,
     logout,
     isAuthenticated: !!session?.user,
-    loading
+    loading,
+    refreshSession
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
